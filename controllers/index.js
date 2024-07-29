@@ -47,28 +47,22 @@ const talkToGemini = async (req, res) => {
     try {
         const result = await model.generateContent(userInput)
         const response = await result.response;
-        const text = response.text();
+        const transcription = response.text();
 
-        // Convert the generated text to audio
-        const ttsConfig = sdk.SpeechConfig.fromSubscription(process.env.SPEECH_KEY, process.env.SPEECH_REGION);
-        ttsConfig.speechSynthesisLanguage = "hi-IN";
-        ttsConfig.speechSynthesisVoiceName = "hi-IN-KavyaNeural";
+        // Function to truncate transcription to a specified number of sentences
+        const truncateToSentences = (text, numSentences) => {
+            const sentences = text.split(/[।\n]+/); // Split by sentence terminators
+            return sentences.slice(0, numSentences).join('। ') + '।'; // Join back limited sentences
+        };
 
-        const audioFileName = `tts-${uuidv4()}.wav`;
-        const audioFilePath = path.join(__dirname, 'uploads', audioFileName);
-        const audioOutput = sdk.AudioConfig.fromAudioFileOutput(audioFilePath);
-        const synthesizer = new sdk.SpeechSynthesizer(ttsConfig, audioOutput);
+        const shortenedTranscription = truncateToSentences(transcription, 2); // Limit to 2 sentences
 
-        synthesizer.speakTextAsync(text, result => {
-            synthesizer.close();
-            res.status(200).json({
-                transcription: text,
-                audioUrl: `/uploads/${audioFileName}`
-            });
-        }, error => {
-            console.error(error);
-            synthesizer.close();
-            res.status(500).json({ error: 'Error generating audio' });
+        synthesizeSpeech(shortenedTranscription, (text, audioPath) => {
+            if (audioPath) {
+                res.status(200).json({ transcription: text, audioPath });
+            } else {
+                res.status(500).json({ message: 'Text-to-speech synthesis failed.' });
+            }
         });
     } catch (error) {
         console.error(error);
@@ -108,12 +102,42 @@ const naturalNLP = (req, res) => {
     })
 }
 
+const synthesizeSpeech = (transcription, callback) => {
+    if (!transcription) {
+        return callback(null, null);
+    }
+
+    const ttsConfig = sdk.SpeechConfig.fromSubscription(process.env.SPEECH_KEY, process.env.SPEECH_REGION);
+    ttsConfig.speechSynthesisLanguage = "hi-IN";
+    ttsConfig.speechSynthesisVoiceName = "hi-IN-KavyaNeural";
+
+    const audioFileName = `tts-${uuidv4()}.wav`;
+    const audioFilePath = path.join(__dirname, 'uploads', audioFileName);
+    const audioOutput = sdk.AudioConfig.fromAudioFileOutput(audioFilePath);
+    const synthesizer = new sdk.SpeechSynthesizer(ttsConfig, audioOutput);
+
+    synthesizer.speakTextAsync(transcription, result => {
+        synthesizer.close();
+        callback(transcription, `/uploads/${audioFileName}`);
+    }, error => {
+        console.error(error);
+        synthesizer.close();
+        callback(transcription, null);
+    });
+};
+
 const nodeNLP = async (req, res) => {
     const { userMessage } = req.body;
 
     try {
-        const response = await nlpService(userMessage);
-        res.status(200).json({ response });
+        const transcription = await nlpService(userMessage);
+        synthesizeSpeech(transcription, (text, audioPath) => {
+            if (audioPath) {
+                res.status(200).json({ transcription: text, audioPath });
+            } else {
+                res.status(500).json({ message: 'Text-to-speech synthesis failed.' });
+            }
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'An error occurred while processing your request.' });
@@ -146,27 +170,7 @@ const transcribeAndSpeak = (filePath, callback) => {
 
             console.log("/process transcription", transcription)
 
-            if (transcription) {
-                const ttsConfig = sdk.SpeechConfig.fromSubscription(process.env.SPEECH_KEY, process.env.SPEECH_REGION);
-                ttsConfig.speechSynthesisLanguage = "hi-IN";
-                ttsConfig.speechSynthesisVoiceName = "hi-IN-KavyaNeural";
-
-                const audioFileName = `tts-${uuidv4()}.wav`;
-                const audioFilePath = path.join(__dirname, 'uploads', audioFileName);
-                const audioOutput = sdk.AudioConfig.fromAudioFileOutput(audioFilePath);
-                const synthesizer = new sdk.SpeechSynthesizer(ttsConfig, audioOutput);
-
-                synthesizer.speakTextAsync(transcription, result => {
-                    synthesizer.close();
-                    callback(transcription, `/uploads/${audioFileName}`);
-                }, error => {
-                    console.error(error);
-                    synthesizer.close();
-                    callback(transcription, null);
-                });
-            } else {
-                callback(transcription, null);
-            }
+            synthesizeSpeech(transcription, callback);
         });
     } catch (error) {
         callback(`Error: ${error.message}`, null);
