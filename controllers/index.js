@@ -5,7 +5,8 @@ const { v4: uuidv4 } = require('uuid');
 const { OpenAI } = require("openai")
 const { GoogleGenerativeAI } = require("@google/generative-ai")
 const nlpService = require('../nlp/nlpService.js');
-const path = require('path')
+const { rootDir } = require('../paths.js');
+const path = require('path');
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -32,13 +33,32 @@ const processMessage = (req, res) => {
     }
 }
 
-const realtimeMessage = (req, res) => {
-    const audioConfig = sdk.AudioConfig.fromDefaultMicrophoneInput();
-    const speechRecognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
+const realtimeMessage = (req, res, callback) => {
+    try {
+        const audioConfig = sdk.AudioConfig.fromDefaultMicrophoneInput();
+        const speechRecognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
 
-    const userText = req.body.text;
+        speechRecognizer.recognizeOnceAsync(result => {
+            let transcription;
+            switch (result.reason) {
+                case sdk.ResultReason.RecognizedSpeech:
+                    transcription = result.text;
+                    break;
+                case sdk.ResultReason.NoMatch:
+                    transcription = "No speech could be recognized.";
+                    break;
+                case sdk.ResultReason.Canceled:
+                    const cancellation = sdk.CancellationDetails.fromResult(result);
+                    transcription = `Cancelled: ${cancellation.reason}`;
+                    break;
+            }
 
-    console.log("userText", userText)
+            console.log("transcription", transcription)
+            synthesizeSpeech(transcription, callback);
+        });
+    } catch (error) {
+        callback(`Error: ${error.message}`, null);
+    }
 }
 
 const talkToGemini = async (req, res) => {
@@ -65,8 +85,14 @@ const talkToGemini = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'An error occurred while generating the response' });
+        console.error('Error with Gemini API:', error);
+        if (error.message.includes('LANGUAGE')) {
+            res.status(400).json({ error: 'Language issue with the API request.' });
+        } else if (error.message.includes('SAFETY')) {
+            res.status(400).json({ error: 'Safety issue with the API response.' });
+        } else {
+            res.status(500).json({ error: 'An error occurred while generating the response.' });
+        }
     }
 }
 
@@ -112,13 +138,13 @@ const synthesizeSpeech = (transcription, callback) => {
     ttsConfig.speechSynthesisVoiceName = "hi-IN-KavyaNeural";
 
     const audioFileName = `tts-${uuidv4()}.wav`;
-    const audioFilePath = path.join(__dirname, 'uploads', audioFileName);
+    const audioFilePath = path.join(rootDir, 'generatedAudioFiles', audioFileName);
     const audioOutput = sdk.AudioConfig.fromAudioFileOutput(audioFilePath);
     const synthesizer = new sdk.SpeechSynthesizer(ttsConfig, audioOutput);
 
     synthesizer.speakTextAsync(transcription, result => {
         synthesizer.close();
-        callback(transcription, `/uploads/${audioFileName}`);
+        callback(transcription, `./genratedAudioFiles/${audioFileName}`);
     }, error => {
         console.error(error);
         synthesizer.close();
@@ -145,7 +171,7 @@ const nodeNLP = async (req, res) => {
 }
 
 const transcribeAndSpeak = (filePath, callback) => {
-    const wavPath = path.join(__dirname, filePath);
+    const wavPath = path.join(rootDir, filePath);
 
     console.log(wavPath)
 
@@ -168,7 +194,7 @@ const transcribeAndSpeak = (filePath, callback) => {
                     break;
             }
 
-            console.log("/process transcription", transcription)
+            console.log("/transcribeAndSpeak", transcription)
 
             synthesizeSpeech(transcription, callback);
         });

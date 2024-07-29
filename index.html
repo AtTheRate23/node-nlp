@@ -274,7 +274,7 @@
                 }, 1000); // 1-second delay after the user stops speaking
 
                 stopSpeaking();
-                if (keywords.includes(transcript)) {
+                if (updatedKeywords.includes(transcript)) {
                     processNextMessage(); // Automatically stop speech recognition
                 } else {
                     geminiTalk(transcript)
@@ -360,6 +360,9 @@
             "अर्थव्यवस्था",
             "सरकार"
         ];
+
+        // Add | symbol at the end of each keyword
+        const updatedKeywords = keywords.map(keyword => keyword + '|');
 
     </script>
 </body>
