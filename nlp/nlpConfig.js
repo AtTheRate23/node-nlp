@@ -3,31 +3,84 @@ const { NlpManager } = require('node-nlp');
 // Initialize the NLP Manager with Hindi language
 const manager = new NlpManager({ languages: ['hi'] });
 
-// Adding different keywords and intents in Hindi
+// Adding different intents and responses related to elections and politics in Hindi
+
+// Greeting intent
 manager.addDocument('hi', 'नमस्ते', 'greeting');
 manager.addDocument('hi', 'हैलो', 'greeting');
-manager.addDocument('hi', 'नमस्कार', 'greeting');
-manager.addDocument('hi', 'शुभ प्रभात', 'greeting');
-manager.addDocument('hi', 'शुभ अपराह्न', 'greeting');
-manager.addDocument('hi', 'शुभ संध्या', 'greeting');
-manager.addDocument('hi', 'क्या हाल है?', 'greeting');
 manager.addDocument('hi', 'कैसे हो?', 'greeting');
-manager.addDocument('hi', 'नमस्ते', 'greeting');
+manager.addDocument('hi', 'कोई है?', 'greeting');
+manager.addDocument('hi', 'शुभ दिन', 'greeting');
 
-// Adding different keywords and intents related to Indian politics in Hindi
-manager.addDocument('hi', 'भारत के वर्तमान प्रधानमंत्री कौन हैं?', 'politics');
-manager.addDocument('hi', 'नरेंद्र मोदी के बारे में बताएं', 'politics');
-manager.addDocument('hi', 'भारत में मुख्य राजनीतिक दल कौन-कौन से हैं?', 'politics');
-manager.addDocument('hi', 'भाजपा के बारे में जानकारी दें', 'politics');
-manager.addDocument('hi', 'पिछले भारतीय आम चुनाव में किसने जीत हासिल की?', 'politics');
-manager.addDocument('hi', 'आम आदमी पार्टी क्या है?', 'politics');
-manager.addDocument('hi', 'भारत के राष्ट्रपति कौन हैं?', 'politics');
-manager.addDocument('hi', 'भारतीय चुनावों के बारे में बताएं', 'politics');
-manager.addDocument('hi', 'भारतीय राजनीति में मुख्य मुद्दे क्या हैं?', 'politics');
+manager.addAnswer('hi', 'greeting', 'नमस्ते :-)');
+manager.addAnswer('hi', 'greeting', 'नमस्ते, आने के लिए धन्यवाद');
+manager.addAnswer('hi', 'greeting', 'नमस्ते, मैं आपकी कैसे मदद कर सकता हूँ?');
+manager.addAnswer('hi', 'greeting', 'नमस्ते, मैं आपकी कैसे सहायता कर सकता हूँ?');
 
-// Answers for different intents in Hindi
-manager.addAnswer('hi', 'greeting', 'नमस्ते! मैं आपकी किस प्रकार सहायता कर सकता हूँ?');
-manager.addAnswer('hi', 'politics', 'यहाँ भारतीय राजनीति के बारे में कुछ जानकारी है:\n- भारत के वर्तमान प्रधानमंत्री नरेंद्र मोदी हैं।\n- भारत में मुख्य राजनीतिक दल भाजपा, कांग्रेस और आप हैं।\n- भाजपा (भारतीय जनता पार्टी) एक प्रमुख दक्षिणपंथी पार्टी है।\n- पिछले भारतीय आम चुनाव में भाजपा ने जीत हासिल की थी।\n- आम आदमी पार्टी (आप) भ्रष्टाचार और प्रशासनिक मुद्दों पर ध्यान केंद्रित करती है।\n- भारत के राष्ट्रपति द्रौपदी मुर्मू हैं।\n- भारतीय राजनीति में प्रमुख मुद्दों में आर्थिक विकास, राष्ट्रीय सुरक्षा और सामाजिक न्याय शामिल हैं।');
+// Goodbye intent
+manager.addDocument('hi', 'अलविदा', 'goodbye');
+manager.addDocument('hi', 'फिर मिलेंगे', 'goodbye');
+manager.addDocument('hi', 'बाय', 'goodbye');
+
+manager.addAnswer('hi', 'goodbye', 'फिर मिलेंगे, आने के लिए धन्यवाद');
+manager.addAnswer('hi', 'goodbye', 'आपका दिन शुभ हो');
+manager.addAnswer('hi', 'goodbye', 'बाय! फिर से जल्द ही आना।');
+
+// Thanks intent
+manager.addDocument('hi', 'धन्यवाद', 'thanks');
+manager.addDocument('hi', 'शुक्रिया', 'thanks');
+manager.addDocument('hi', 'यह सहायक था', 'thanks');
+manager.addDocument('hi', 'बहुत बहुत धन्यवाद', 'thanks');
+
+manager.addAnswer('hi', 'thanks', 'मदद करके खुशी हुई!');
+manager.addAnswer('hi', 'thanks', 'कभी भी!');
+manager.addAnswer('hi', 'thanks', 'मुझे खुशी है।');
+
+// Prime Minister intent
+manager.addDocument('hi', 'भारत के वर्तमान प्रधानमंत्री कौन हैं?', 'prime_minister');
+manager.addDocument('hi', 'नरेंद्र मोदी के बारे में बताएं', 'prime_minister');
+
+manager.addAnswer('hi', 'prime_minister', 'भारत के वर्तमान प्रधानमंत्री नरेंद्र मोदी हैं।');
+manager.addAnswer('hi', 'prime_minister', 'नरेंद्र मोदी भारतीय जनता पार्टी (भाजपा) के सदस्य हैं और 2014 से प्रधानमंत्री हैं।');
+
+// Political Parties intent
+manager.addDocument('hi', 'भारत में मुख्य राजनीतिक दल कौन-कौन से हैं?', 'political_parties');
+manager.addDocument('hi', 'भाजपा के बारे में जानकारी दें', 'political_parties');
+manager.addDocument('hi', 'आम आदमी पार्टी क्या है?', 'political_parties');
+manager.addDocument('hi', 'भारत में प्रमुख राजनीतिक दलों के नाम बताएं', 'political_parties');
+
+manager.addAnswer('hi', 'political_parties', 'भारत में मुख्य राजनीतिक दल भाजपा, कांग्रेस और आम आदमी पार्टी हैं।');
+manager.addAnswer('hi', 'political_parties', 'भाजपा (भारतीय जनता पार्टी) एक प्रमुख दक्षिणपंथी पार्टी है।');
+manager.addAnswer('hi', 'political_parties', 'आम आदमी पार्टी (आप) भ्रष्टाचार और प्रशासनिक मुद्दों पर ध्यान केंद्रित करती है।');
+manager.addAnswer('hi', 'political_parties', 'भारत में प्रमुख राजनीतिक दलों में भाजपा, कांग्रेस, तृणमूल कांग्रेस, सीपीआई(एम), डीएमके, बीएसपी और अन्य शामिल हैं।');
+
+// Elections intent
+manager.addDocument('hi', 'पिछले भारतीय आम चुनाव में किसने जीत हासिल की?', 'elections');
+manager.addDocument('hi', 'भारतीय चुनावों के बारे में बताएं', 'elections');
+manager.addDocument('hi', 'भारतीय चुनाव प्रणाली कैसे काम करती है?', 'elections');
+manager.addDocument('hi', 'भारत में वोटर कैसे बनें?', 'elections');
+manager.addDocument('hi', 'भारत में आम चुनाव कब होते हैं?', 'elections');
+
+manager.addAnswer('hi', 'elections', 'पिछले भारतीय आम चुनाव में भाजपा ने जीत हासिल की थी।');
+manager.addAnswer('hi', 'elections', 'भारत में चुनाव प्रणाली में हर 5 साल में लोकसभा के चुनाव होते हैं।');
+manager.addAnswer('hi', 'elections', 'भारत में वोटर बनने के लिए नागरिक की उम्र 18 साल होनी चाहिए और उसे चुनाव आयोग में पंजीकृत होना चाहिए।');
+manager.addAnswer('hi', 'elections', 'भारत में आम चुनाव हर 5 साल में होते हैं।');
+
+// Parliament intent
+manager.addDocument('hi', 'लोकसभा क्या है?', 'parliament');
+manager.addDocument('hi', 'राज्यसभा क्या है?', 'parliament');
+manager.addDocument('hi', 'लोकसभा और राज्यसभा में क्या अंतर है?', 'parliament');
+manager.addDocument('hi', 'भारत में कितने सांसद हैं?', 'parliament');
+
+manager.addAnswer('hi', 'parliament', 'लोकसभा भारतीय संसद का निचला सदन है।');
+manager.addAnswer('hi', 'parliament', 'राज्यसभा भारतीय संसद का उच्च सदन है।');
+manager.addAnswer('hi', 'parliament', 'लोकसभा का कार्यकाल 5 साल का होता है जबकि राज्यसभा के सदस्य 6 साल के लिए चुने जाते हैं।');
+manager.addAnswer('hi', 'parliament', 'भारत में कुल 543 लोकसभा सदस्य और 245 राज्यसभा सदस्य होते हैं।');
+
+// Election Commission intent
+manager.addDocument('hi', 'निर्वाचन आयोग क्या है?', 'election_commission');
+
+manager.addAnswer('hi', 'election_commission', 'निर्वाचन आयोग भारत में स्वतंत्र और निष्पक्ष चुनाव करवाने वाली संस्था है।');
 
 // Train the model
 (async () => {
