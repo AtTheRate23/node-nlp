@@ -77,9 +77,9 @@ const talkToGemini = async (req, res) => {
 
         const shortenedTranscription = truncateToSentences(transcription, 2); // Limit to 2 sentences
 
-        synthesizeSpeech(shortenedTranscription, (text, audioPath) => {
+        synthesizeSpeech(shortenedTranscription, (transcription, audioUrl) => {
             if (audioPath) {
-                res.status(200).json({ transcription: text, audioPath });
+                res.status(200).json({ transcription, audioUrl });
             } else {
                 res.status(500).json({ message: 'Text-to-speech synthesis failed.' });
             }
@@ -144,7 +144,7 @@ const synthesizeSpeech = (transcription, callback) => {
 
     synthesizer.speakTextAsync(transcription, result => {
         synthesizer.close();
-        callback(transcription, `/generatedAudioFiles/${audioFileName}`);
+        callback(transcription, `${rootDir}/generatedAudioFiles/${audioFileName}`);
     }, error => {
         console.error(error);
         synthesizer.close();
@@ -153,13 +153,13 @@ const synthesizeSpeech = (transcription, callback) => {
 };
 
 const nodeNLP = async (req, res) => {
-    const { userMessage } = req.body;
+    const { text } = req.body;
 
     try {
-        const transcription = await nlpService(userMessage);
-        synthesizeSpeech(transcription, (text, audioPath) => {
+        const transcription = await nlpService(text);
+        synthesizeSpeech(transcription, (transcription, audioUrl) => {
             if (audioPath) {
-                res.status(200).json({ transcription: text, audioPath });
+                res.status(200).json({ transcription, audioUrl });
             } else {
                 res.status(500).json({ message: 'Text-to-speech synthesis failed.' });
             }
@@ -193,8 +193,6 @@ const transcribeAndSpeak = (filePath, callback) => {
                     transcription = `Cancelled: ${cancellation.reason}`;
                     break;
             }
-
-            console.log("/transcribeAndSpeak", transcription)
 
             synthesizeSpeech(transcription, callback);
         });

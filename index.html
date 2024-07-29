@@ -219,7 +219,7 @@
                     console.log("response data:-", data)
                     appendMessage(data.transcription, 'bot');
                     if (data.audioUrl) {
-                        console.log("audio url", data.audioUrl)
+                        console.log("process", data.audioUrl)
                         playAudio(data.audioUrl);
                     } else {
                         startSpeechRecognition(); // Start speech recognition if there's no audio to play
@@ -264,6 +264,7 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.audioUrl) {
+                                console.log("startSpeechRecog", data.audioUrl)
                                 playAudio(data.audioUrl);
                             } else {
                                 startSpeechRecognition(); // Start speech recognition if there's no audio to play
@@ -277,7 +278,7 @@
                 if (keywords.includes(transcript)) {
                     processNextMessage(); // Automatically stop speech recognition
                 } else {
-                    geminiTalk(transcript)
+                    nodeNLP(transcript) || geminiTalk(transcript)
                 }
             };
 
@@ -312,7 +313,28 @@
                 .then(data => {
                     appendMessage(data.transcription, 'bot');
                     if (data.audioUrl) {
-                        console.log("audio url", data.audioUrl)
+                        console.log("gemini", data.audioUrl)
+                        playAudio(data.audioUrl);
+                    } else {
+                        startSpeechRecognition(); // Start speech recognition if there's no audio to play
+                    }
+                    document.getElementById('micIcon').classList.remove('hidden');
+                });
+        }
+
+        function nodeNLP(text) {
+            fetch(`${apiEndpoint}/api/node-nlp`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    appendMessage(data.transcription, 'bot');
+                    if (data.audioUrl) {
+                        console.log("node-nlp", data.audioUrl)
                         playAudio(data.audioUrl);
                     } else {
                         startSpeechRecognition(); // Start speech recognition if there's no audio to play
