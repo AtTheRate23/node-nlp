@@ -145,7 +145,7 @@ const synthesizeSpeech = (transcription, callback) => {
 
     synthesizer.speakTextAsync(transcription, result => {
         synthesizer.close();
-        callback(transcription, `http://localhost:${process.env.PORT || 5000}/audio/${audioFileName}`);
+        callback(transcription, `https://node-nlp.onrender.com/audio/${audioFileName}`);
     }, error => {
         console.error(error);
         synthesizer.close();
