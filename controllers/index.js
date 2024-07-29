@@ -144,7 +144,7 @@ const synthesizeSpeech = (transcription, callback) => {
 
     synthesizer.speakTextAsync(transcription, result => {
         synthesizer.close();
-        callback(transcription, `./genratedAudioFiles/${audioFileName}`);
+        callback(transcription, `/generatedAudioFiles/${audioFileName}`);
     }, error => {
         console.error(error);
         synthesizer.close();
@@ -171,7 +171,7 @@ const nodeNLP = async (req, res) => {
 }
 
 const transcribeAndSpeak = (filePath, callback) => {
-    const wavPath = path.join(rootDir, filePath);
+    const wavPath = path.join(__dirname, filePath);
 
     console.log(wavPath)
 
