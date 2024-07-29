@@ -144,7 +144,7 @@ const synthesizeSpeech = (transcription, callback) => {
 
     synthesizer.speakTextAsync(transcription, result => {
         synthesizer.close();
-        callback(transcription, `${rootDir}/generatedAudioFiles/${audioFileName}`);
+        callback(transcription, `http://localhost:${process.env.PORT || 5000}/audio/${audioFileName}`);
     }, error => {
         console.error(error);
         synthesizer.close();
