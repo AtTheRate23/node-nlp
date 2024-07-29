@@ -72,7 +72,7 @@ const talkToGemini = async (req, res) => {
         // Function to truncate transcription to a specified number of sentences
         const truncateToSentences = (text, numSentences) => {
             const sentences = text.split(/[।\n]+/); // Split by sentence terminators
-            return sentences.slice(0, numSentences).join('। ') + '।'; // Join back limited sentences
+            return sentences.slice(0, numSentences).join('। '); // Join back limited sentences
         };
 
         const shortenedTranscription = truncateToSentences(transcription, 2); // Limit to 2 sentences
