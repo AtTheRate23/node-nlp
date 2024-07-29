@@ -29,6 +29,7 @@ const processMessage = (req, res) => {
             res.status(200).json({ transcription, audioUrl });
         });
     } else {
+        currentIndex = 0; // Reset the index to start over
         res.status(200).json({ transcription: 'All messages processed', audioUrl: null });
     }
 }
