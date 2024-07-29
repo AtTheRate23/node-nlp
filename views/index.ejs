@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Chat Bot</title>
+    <style>
+        body {
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .mobile-frame {
+            width: 430px;
+            /* iPhone 14 Pro Max width */
+            height: 932px;
+            /* iPhone 14 Pro Max height */
+            border: 16px solid #000;
+            border-radius: 36px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            background-color: #ffffff;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dynamic-island {
+            width: 100%;
+            height: 40px;
+            background: #000;
+            border-bottom: 1px solid #333;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .dynamic-island::before {
+            content: "";
+            width: 140px;
+            height: 6px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.3);
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .chat-messages {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 94%;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+            overflow-y: auto;
+            background-color: #ffffff;
+            flex: 1;
+        }
+
+        .chat-message {
+            background-color: #e1f5fe;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            max-width: 80%;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .chat-message.user {
+            align-self: flex-end;
+            background-color: #71ddac;
+            color: #ffffff;
+        }
+
+        .chat-message.bot {
+            background-color: #94aae5;
+            color: #ffffff;
+        }
+
+        .chat-message .time {
+            display: flex;
+            align-items: center;
+            font-size: 0.8em;
+            color: #555;
+            margin-top: 5px;
+        }
+
+        .chat-message .time-icon {
+            width: 12px;
+            height: 12px;
+            margin-right: 5px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 86%;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+
+        .mic-icon {
+            cursor: pointer;
+            margin-top: 10px;
+            width: 38px;
+            height: 45px;
+        }
+
+        .mic-icon.hidden {
+            display: none;
+        }
+
+        .animation {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .animation.active {
+            display: block;
+            width: 50px;
+            height: 50px;
+            background: url('https://i.pinimg.com/originals/77/fb/3f/77fb3fc7e95ac33999c0b05832920a44.gif') no-repeat center center;
+            background-size: cover;
+        }
+
+        button {
+            background-color: #94aae5;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        button:hover {
+            background-color: #94aae5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mobile-frame">
+        <div class="dynamic-island">
+
+        </div>
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-message bot">
+                    <button onclick="processNextMessage()">Start</button>
+                </div>
+            </div>
+            <div class="controls">
+                <img src="https://tse2.mm.bing.net/th?id=OIP._pVmKO-E2XdN9K70TZzVpgHaKo&pid=Api&P=0&h=220" alt="Mic"
+                    class="mic-icon" id="micIcon" onclick="toggleMicrophone()" />
+                <div id="animation" class="animation"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // import keywords from '../keywords.js'
+
+        let recognition;
+        let isRecording = false;
+        let recognitionEndTimeout;
+        let messageIndex = 0; // Keep track of the message index
+
+        const apiEndpoint = 'http://localhost:5000'
+
+        function appendMessage(text, sender) {
+            const chatContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('chat-message');
+            messageDiv.classList.add(sender);
+            messageDiv.textContent = text;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to the bottom
+        }
+
+        function playAudio(url) {
+            const audio = new Audio(url);
+            audio.play();
+            audio.onended = function () {
+                // Automatically start speech recognition after the audio ends
+                startSpeechRecognition();
+            };
+        }
+
+        function processNextMessage() {
+            fetch(`${apiEndpoint}/api/process`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ index: messageIndex })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("response data:-", data)
+                    appendMessage(data.transcription, 'bot');
+                    if (data.audioUrl) {
+                        console.log("process", data.audioUrl)
+                        playAudio(data.audioUrl);
+                    } else {
+                        startSpeechRecognition(); // Start speech recognition if there's no audio to play
+                    }
+                    document.getElementById('micIcon').classList.remove('hidden');
+                    messageIndex++; // Increment the message index
+                });
+        }
+
+        function toggleMicrophone() {
+            if (isRecording) {
+                stopSpeaking();
+            } else {
+                startSpeechRecognition();
+            }
+        }
+
+        function startSpeechRecognition() {
+            if (!('webkitSpeechRecognition' in window)) {
+                alert('Your browser does not support the Web Speech API');
+                return;
+            }
+
+            recognition = new webkitSpeechRecognition();
+            recognition.lang = 'hi-IN'; // Hindi language
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onresult = function (event) {
+                const transcript = event.results[0][0].transcript;
+                appendMessage(transcript, 'user');
+                // Clear previous timeout if any
+                clearTimeout(recognitionEndTimeout);
+                recognitionEndTimeout = setTimeout(() => {
+                    fetch(`${apiEndpoint}/api/realtime`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ text: transcript })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.audioUrl) {
+                                console.log("startSpeechRecog", data.audioUrl)
+                                playAudio(data.audioUrl);
+                            } else {
+                                startSpeechRecognition(); // Start speech recognition if there's no audio to play
+                            }
+                            document.getElementById('micIcon').classList.remove('hidden');
+                            processNextMessage(); // Process the next message after the response
+                        });
+                }, 1000); // 1-second delay after the user stops speaking
+
+                stopSpeaking();
+                if (keywords.includes(transcript)) {
+                    processNextMessage(); // Automatically stop speech recognition
+                } else {
+                    nodeNLP(transcript) 
+                    // || geminiTalk(transcript)
+                }
+            };
+
+            recognition.onerror = function (event) {
+                console.error('Speech recognition error:', event.error);
+                document.getElementById('micIcon').classList.remove('hidden');
+                document.getElementById('animation').classList.remove('active');
+                isRecording = false;
+            };
+
+            recognition.onend = function () {
+                if (isRecording) {
+                    // Restart recognition if it ends without error
+                    startSpeechRecognition();
+                }
+            };
+
+            recognition.start();
+            document.getElementById('animation').classList.add('active');
+            isRecording = true;
+        }
+
+        function geminiTalk(text) {
+            fetch(`${apiEndpoint}/api/gemini`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    appendMessage(data.transcription, 'bot');
+                    if (data.audioUrl) {
+                        console.log("gemini", data.audioUrl)
+                        playAudio(data.audioUrl);
+                    } else {
+                        startSpeechRecognition(); // Start speech recognition if there's no audio to play
+                    }
+                    document.getElementById('micIcon').classList.remove('hidden');
+                });
+        }
+
+        function nodeNLP(text) {
+            fetch(`${apiEndpoint}/api/node-nlp`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    appendMessage(data.transcription, 'bot');
+                    if (data.audioUrl) {
+                        console.log("node-nlp", data.audioUrl)
+                        playAudio(data.audioUrl);
+                    } else {
+                        startSpeechRecognition(); // Start speech recognition if there's no audio to play
+                    }
+                    document.getElementById('micIcon').classList.remove('hidden');
+                });
+        }
+
+        function stopSpeaking() {
+            if (isRecording) {
+                recognition.stop();
+                document.getElementById('micIcon').classList.remove('hidden');
+                document.getElementById('animation').classList.remove('active');
+                isRecording = false;
+            }
+        }
+
+        const keywords = [
+            "हां जी।",
+            "हाँ जी।",
+            "जी नहीं।",
+            "हां।",
+            "हाँ।",
+            "नहीं।",
+            "जी हां।",
+            "बताइए।",
+            "विधान सभा।",
+            "अंबाला।",
+            "बीजेपी।",
+            "कांग्रेस।",
+            "आप।",
+            "भारतीय जनता पार्टी।",
+            "कांग्रेस पार्टी।",
+            "आम आदमी पार्टी।",
+            "भाजपा।",
+            "कांग्रेस।",
+            "कृषि।",
+            "शिक्षा।",
+            "स्वास्थ्य।",
+            "सड़क।",
+            "पानी।",
+            "रोजगार।",
+            "सुरक्षा।",
+            "संविधान।",
+            "राजनीति।",
+            "विकास।",
+            "अर्थव्यवस्था।",
+            "सरकार।"
+        ];
+
+    </script>
+</body>
+
+</html>
