@@ -278,7 +278,8 @@
                 if (keywords.includes(transcript)) {
                     processNextMessage(); // Automatically stop speech recognition
                 } else {
-                    nodeNLP(transcript) || geminiTalk(transcript)
+                    nodeNLP(transcript) 
+                    // || geminiTalk(transcript)
                 }
             };
 

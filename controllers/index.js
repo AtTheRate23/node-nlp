@@ -78,7 +78,7 @@ const talkToGemini = async (req, res) => {
         const shortenedTranscription = truncateToSentences(transcription, 2); // Limit to 2 sentences
 
         synthesizeSpeech(shortenedTranscription, (transcription, audioUrl) => {
-            if (audioPath) {
+            if (audioUrl) {
                 res.status(200).json({ transcription, audioUrl });
             } else {
                 res.status(500).json({ message: 'Text-to-speech synthesis failed.' });
@@ -158,7 +158,7 @@ const nodeNLP = async (req, res) => {
     try {
         const transcription = await nlpService(text);
         synthesizeSpeech(transcription, (transcription, audioUrl) => {
-            if (audioPath) {
+            if (audioUrl) {
                 res.status(200).json({ transcription, audioUrl });
             } else {
                 res.status(500).json({ message: 'Text-to-speech synthesis failed.' });
