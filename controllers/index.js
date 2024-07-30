@@ -7,6 +7,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai")
 const nlpService = require('../nlp/nlpService.js');
 const { rootDir } = require('../paths.js');
 const path = require('path');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/convert.js');
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -138,14 +139,18 @@ const synthesizeSpeech = (transcription, callback) => {
     ttsConfig.speechSynthesisLanguage = "hi-IN";
     ttsConfig.speechSynthesisVoiceName = "hi-IN-KavyaNeural";
 
-    const audioFileName = `tts-${uuidv4()}.wav`;
-    const audioFilePath = path.join(rootDir, 'generatedAudioFiles', audioFileName);
-    const audioOutput = sdk.AudioConfig.fromAudioFileOutput(audioFilePath);
-    const synthesizer = new sdk.SpeechSynthesizer(ttsConfig, audioOutput);
+    const synthesizer = new sdk.SpeechSynthesizer(ttsConfig);
 
     synthesizer.speakTextAsync(transcription, result => {
-        synthesizer.close();
-        callback(transcription, `http://localhost:${process.env.PORT || 5000}/audio/${audioFileName}`);
+        const audioBuffer = result.audioData;
+        uploadToCloudinary(audioBuffer, (err, cloudinaryUrl) => {
+            synthesizer.close();
+            if (err) {
+                callback(transcription, null);
+            } else {
+                callback(transcription, cloudinaryUrl);
+            }
+        });
     }, error => {
         console.error(error);
         synthesizer.close();
@@ -204,12 +209,11 @@ const transcribeAndSpeak = (filePath, callback) => {
 
 const deleteAudio = (req, res) => {
     const audioUrl = req.body.url;
-    const audioFileName = path.basename(audioUrl);
-    const audioFilePath = path.join(rootDir, 'generatedAudioFiles', audioFileName);
 
-    fs.unlink(audioFilePath, (err) => {
+    const publicId = path.basename(audioUrl, path.extname(audioUrl)); // Extract the public ID from the URL
+
+    deleteFromCloudinary(publicId, (err, result) => {
         if (err) {
-            console.error('Error deleting audio file:', err);
             return res.status(500).json({ success: false });
         }
 
