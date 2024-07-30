@@ -7,6 +7,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai")
 const nlpService = require('../nlp/nlpService.js');
 const { rootDir } = require('../paths.js');
 const path = require('path');
+const { uploadToS3, deleteFromS3 } = require('../utils/convert.js');
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -139,13 +140,15 @@ const synthesizeSpeech = (transcription, callback) => {
     ttsConfig.speechSynthesisVoiceName = "hi-IN-KavyaNeural";
 
     const audioFileName = `tts-${uuidv4()}.wav`;
-    const audioFilePath = path.join(rootDir, 'generatedAudioFiles', audioFileName);
-    const audioOutput = sdk.AudioConfig.fromAudioFileOutput(audioFilePath);
+    const audioOutput = sdk.AudioConfig.fromStreamOutput(); // Use stream output instead of file output
     const synthesizer = new sdk.SpeechSynthesizer(ttsConfig, audioOutput);
 
     synthesizer.speakTextAsync(transcription, result => {
-        synthesizer.close();
-        callback(transcription, `http://localhost:${process.env.PORT || 5000}/audio/${audioFileName}`);
+        const audioStream = result.audioData;
+        uploadToS3(audioFileName, audioStream, (s3Url) => {
+            synthesizer.close();
+            callback(transcription, s3Url);
+        });
     }, error => {
         console.error(error);
         synthesizer.close();
@@ -205,17 +208,20 @@ const transcribeAndSpeak = (filePath, callback) => {
 const deleteAudio = (req, res) => {
     const audioUrl = req.body.url;
     const audioFileName = path.basename(audioUrl);
-    const audioFilePath = path.join(rootDir, 'generatedAudioFiles', audioFileName);
 
-    fs.unlink(audioFilePath, (err) => {
+    const params = {
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: audioFileName,
+    };
+
+    deleteFromS3(params, (err, data) => {
         if (err) {
-            console.error('Error deleting audio file:', err);
             return res.status(500).json({ success: false });
         }
 
         res.json({ success: true });
     });
-}
+};
 
 module.exports = {
     talkToGemini,
