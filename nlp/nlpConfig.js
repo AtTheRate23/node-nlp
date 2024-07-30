@@ -28,6 +28,7 @@ manager.addAnswer('hi', 'goodbye', 'बाय! फिर से जल्द ह
 
 // Thanks intent
 manager.addDocument('hi', 'धन्यवाद', 'thanks');
+manager.addDocument('hi', 'थैंक यू', 'thanks');
 manager.addDocument('hi', 'शुक्रिया', 'thanks');
 manager.addDocument('hi', 'यह सहायक था', 'thanks');
 manager.addDocument('hi', 'बहुत बहुत धन्यवाद', 'thanks');
