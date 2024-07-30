@@ -119,11 +119,9 @@ manager.addAnswer('hi', 'occupation', 'मैं एक आभासी सह�
 manager.addAnswer('hi', 'occupation', 'मैं एक चैटबॉट हूँ और आपकी सहायता के लिए बनाया गया हूँ।');
 
 
-// Train the model
-(async () => {
-    await manager.train();
+manager.train().then(async () => {
     manager.save();
-})();
+})
 
 // Export the trained NLP Manager for use in other parts of the application
 module.exports = manager;
