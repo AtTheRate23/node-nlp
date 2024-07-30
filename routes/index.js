@@ -1,5 +1,5 @@
 const express = require('express');
-const { talkToGemini, nodeNLP, talkToOpenAI, naturalNLP, processMessage, realtimeMessage, deleteAudio } = require('../controllers/index.js');
+const { talkToGemini, nodeNLP, talkToOpenAI, naturalNLP, processMessage, realtimeMessage, deleteAudio, restartProcessing } = require('../controllers/index.js');
 
 const app = express.Router();
 
@@ -11,5 +11,6 @@ app.post('/node-nlp', nodeNLP);
 app.post('/process', processMessage);
 app.post('/realtime', realtimeMessage);
 app.delete('/delete-audio',deleteAudio);
+app.get('/restart', restartProcessing);
 
 module.exports = app;

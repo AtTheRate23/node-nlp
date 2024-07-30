@@ -221,6 +221,11 @@ const deleteAudio = (req, res) => {
     });
 }
 
+const restartProcessing = (req, res) => {
+    currentIndex = 0;
+    res.status(200).json({ message: 'Processing restarted.' });
+}
+
 module.exports = {
     talkToGemini,
     talkToOpenAI,
@@ -228,5 +233,6 @@ module.exports = {
     nodeNLP,
     processMessage,
     realtimeMessage,
-    deleteAudio
+    deleteAudio,
+    restartProcessing
 };
