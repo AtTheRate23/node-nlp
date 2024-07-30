@@ -115,7 +115,6 @@
             flex-direction: column;
             align-items: center;
             background-color: #ffffff;
-            margin-left: 50px;
         }
 
         .mic-icon {
@@ -162,7 +161,6 @@
             justify-content: center;
             align-items: center;
             background-color: #ffffff;
-            margin-right: 80px;
         }
 
         .restart-icon {
@@ -174,9 +172,10 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            width: 100%;
-            padding: 20px;
+            width: 90%;
+            padding: 10px;
             background-color: #ffffff;
+            margin: 0 15px 0 15px;
         }
     </style>
 </head>
@@ -188,11 +187,13 @@
         </div>
         <div class="chat-container">
             <div class="chat-messages" id="chatMessages">
-                <div class="chat-message bot">
-                    <button onclick="processNextMessage()">Start</button>
-                </div>
             </div>
             <div class="bottom-container">
+                <div class="restart-container">
+                    <img src="https://img.icons8.com/ios-glyphs/30/000000/play.png" alt="Restart"
+                        class="restart-icon" onclick="processNextMessage()" />
+                    <div class="restart-label">Start</div>
+                </div>
                 <div class="controls">
                     <img src="https://tse2.mm.bing.net/th?id=OIP._pVmKO-E2XdN9K70TZzVpgHaKo&pid=Api&P=0&h=220" alt="Mic"
                         class="mic-icon" id="micIcon" onclick="toggleMicrophone()" />
@@ -215,8 +216,8 @@
         let recognitionEndTimeout;
         let messageIndex = 0; // Keep track of the message index
 
-        const apiEndpoint = 'https://node-nlp.onrender.com'
-        // const apiEndpoint = 'http://localhost:5000'
+        // const apiEndpoint = 'https://node-nlp.onrender.com'
+        const apiEndpoint = 'http://localhost:5000'
 
         function appendMessage(text, sender) {
             const chatContainer = document.getElementById('chatMessages');
@@ -410,9 +411,22 @@
                 .then(response => response.json())
                 .then(data => {
                     console.log('Chat restarted successfully');
+                    // Clear all messages from the chat container
+                    const chatContainer = document.getElementById('chatMessages');
+                    while (chatContainer.firstChild) {
+                        chatContainer.removeChild(chatContainer.firstChild);
+                    }
+                    // Optionally, add a new message indicating the chat has been restarted
+                    const restartMessage = document.createElement('div');
+                    restartMessage.classList.add('chat-message', 'bot');
+                    // restartMessage.textContent = 'Chat has been restarted. You can start a new conversation.';
+                    restartMessage.textContent = 'चैट को पुनः प्रारंभ कर दिया गया है। आप एक नई बातचीत शुरू कर सकते हैं।';
+                    chatContainer.appendChild(restartMessage);
                 })
+                .catch(error => {
+                    console.error('Error restarting chat:', error);
+                });
         }
-
         const keywords = [
             "हां जी",
             "हाँ जी",
