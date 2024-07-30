@@ -145,7 +145,7 @@ const synthesizeSpeech = (transcription, callback) => {
 
     synthesizer.speakTextAsync(transcription, result => {
         synthesizer.close();
-        callback(transcription, `https://node-nlp.onrender.com/audio/${audioFileName}`);
+        callback(transcription, `http://localhost:${process.env.PORT || 5000}/audio/${audioFileName}`);
     }, error => {
         console.error(error);
         synthesizer.close();
@@ -202,11 +202,29 @@ const transcribeAndSpeak = (filePath, callback) => {
     }
 };
 
+const deleteAudio = (req, res) => {
+    const audioUrl = req.body.url;
+    const audioFileName = path.basename(audioUrl);
+    const audioFilePath = path.join(rootDir, 'generatedAudioFiles', audioFileName);
+
+    console.log('audio url, filename & filePath', audioUrl, audioFileName, audioFilePath)
+
+    fs.unlink(audioFilePath, (err) => {
+        if (err) {
+            console.error('Error deleting audio file:', err);
+            return res.status(500).json({ success: false });
+        }
+
+        res.json({ success: true });
+    });
+}
+
 module.exports = {
     talkToGemini,
     talkToOpenAI,
     naturalNLP,
     nodeNLP,
     processMessage,
-    realtimeMessage
+    realtimeMessage,
+    deleteAudio
 };

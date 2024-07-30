@@ -185,7 +185,8 @@
         let recognitionEndTimeout;
         let messageIndex = 0; // Keep track of the message index
 
-        const apiEndpoint = 'https://node-nlp.onrender.com'
+        // const apiEndpoint = 'https://node-nlp.onrender.com'
+        const apiEndpoint = 'http://localhost:5000'
 
         function appendMessage(text, sender) {
             const chatContainer = document.getElementById('chatMessages');
@@ -201,6 +202,26 @@
             const audio = new Audio(url);
             audio.play();
             audio.onended = function () {
+                // Delete the audio file after it has been played
+                fetch(`${apiEndpoint}/api/delete-audio`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('Audio file deleted successfully');
+                        } else {
+                            console.error('Failed to delete audio file');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+
                 // Automatically start speech recognition after the audio ends
                 startSpeechRecognition();
             };
@@ -278,7 +299,7 @@
                 if (keywords.includes(transcript)) {
                     processNextMessage(); // Automatically stop speech recognition
                 } else {
-                    nodeNLP(transcript) 
+                    nodeNLP(transcript)
                     // || geminiTalk(transcript)
                 }
             };
