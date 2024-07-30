@@ -207,8 +207,6 @@ const deleteAudio = (req, res) => {
     const audioFileName = path.basename(audioUrl);
     const audioFilePath = path.join(rootDir, 'generatedAudioFiles', audioFileName);
 
-    console.log('audio url, filename & filePath', audioUrl, audioFileName, audioFilePath)
-
     fs.unlink(audioFilePath, (err) => {
         if (err) {
             console.error('Error deleting audio file:', err);
