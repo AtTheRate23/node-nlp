@@ -37,6 +37,12 @@ manager.addAnswer('hi', 'thanks', 'मदद करके खुशी हुई
 manager.addAnswer('hi', 'thanks', 'कभी भी!');
 manager.addAnswer('hi', 'thanks', 'मुझे खुशी है।');
 
+// Start intents
+
+manager.addDocument('hi', 'प्रारंभ', 'start');
+
+manager.addAnswer('hi', 'start', 'नमस्कार मैं पीपल इनसैड से श्वेता बात कर रही हूँ यह कॉल आने वाले हरियाणा विधानसभा चुनाव के सर्वेक्षण के लिए किया गया है। आपसे ली गई जानकारी गोपनीय रखी जाएगी।');
+
 // Prime Minister intent
 manager.addDocument('hi', 'भारत के वर्तमान प्रधानमंत्री कौन हैं?', 'prime_minister');
 manager.addDocument('hi', 'नरेंद्र मोदी के बारे में बताएं', 'prime_minister');
@@ -85,6 +91,7 @@ manager.addDocument('hi', 'जे जे पी', 'political_parties_jjp');
 
 manager.addAnswer('hi', 'political_parties_jjp', 'आपका जे जे पी को वोट देने का मुख्य कारण क्या है?')
 
+// -----------------------------------------------------------------------------------------------------------------------------
 
 // Elections intent
 manager.addDocument('hi', 'पिछले भारतीय आम चुनाव में किसने जीत हासिल की?', 'elections');

@@ -191,7 +191,7 @@
             <div class="bottom-container">
                 <div class="restart-container">
                     <img src="https://img.icons8.com/ios-glyphs/30/000000/play.png" alt="Restart"
-                        class="restart-icon" onclick="processNextMessage()" />
+                        class="restart-icon" onclick="nodeNLP(text='प्रारंभ')" />
                     <div class="restart-label">Start</div>
                 </div>
                 <div class="controls">
@@ -216,8 +216,8 @@
         let recognitionEndTimeout;
         let messageIndex = 0; // Keep track of the message index
 
-        const apiEndpoint = 'https://node-nlp.onrender.com'
-        // const apiEndpoint = 'http://localhost:5000'
+        // const apiEndpoint = 'https://node-nlp.onrender.com'
+        const apiEndpoint = 'http://localhost:5000'
 
         function appendMessage(text, sender) {
             const chatContainer = document.getElementById('chatMessages');
