@@ -177,21 +177,74 @@
             background-color: #ffffff;
             margin: 0 15px 0 15px;
         }
+
+        .switch {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            z-index: 1;
+        }
+
+        .switch input {
+            display: none;
+        }
+
+        .slider {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+            background-color: #ccc;
+            border-radius: 20px;
+            transition: 0.4s;
+            cursor: pointer;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            top: 0;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            background-color: #fff;
+            border-radius: 50%;
+            transition: 0.4s;
+        }
+
+        input:checked+.slider {
+            background-color: #2196F3;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(20px);
+        }
+
+        .slider.round {
+            border-radius: 20px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
     </style>
 </head>
 
 <body>
     <div class="mobile-frame">
         <div class="dynamic-island">
-
+            <label class="switch" title="Talk to Gemini">
+                <input type="checkbox" id="switch-input">
+                <span class="slider round"></span>
+            </label>
         </div>
         <div class="chat-container">
             <div class="chat-messages" id="chatMessages">
             </div>
             <div class="bottom-container">
                 <div class="restart-container">
-                    <img src="https://img.icons8.com/ios-glyphs/30/000000/play.png" alt="Restart"
-                        class="restart-icon" onclick="nodeNLP(text='प्रारंभ')" />
+                    <img src="https://img.icons8.com/ios-glyphs/30/000000/play.png" alt="Restart" class="restart-icon"
+                        onclick="nodeNLP(text='प्रारंभ')" />
                     <div class="restart-label">Start</div>
                 </div>
                 <div class="controls">
@@ -215,9 +268,18 @@
         let isRecording = false;
         let recognitionEndTimeout;
         let messageIndex = 0; // Keep track of the message index
+        let talkToGeminiSwitch = false
 
         const apiEndpoint = 'https://node-nlp.onrender.com'
         // const apiEndpoint = 'http://localhost:5000'
+
+        document.getElementById('switch-input').addEventListener('change', function () {
+            // Perform some action when the switch is toggled
+            console.log('Switch toggled!');
+            talkToGeminiSwitch = !talkToGeminiSwitch
+            console.log("talktogeminiSwitch", talkToGeminiSwitch)
+        });
+
 
         function appendMessage(text, sender) {
             const chatContainer = document.getElementById('chatMessages');
@@ -329,10 +391,10 @@
                 stopSpeaking();
                 if (keywords.includes(transcript)) {
                     processNextMessage(); // Automatically stop speech recognition
+                } else if (talkToGeminiSwitch) {
+                    geminiTalk(transcript)
                 } else {
                     nodeNLP(transcript)
-                    // || 
-                    // geminiTalk(transcript)
                 }
             };
 
