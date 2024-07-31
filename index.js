@@ -19,7 +19,7 @@ app.use(cors());
 
 app.use(express.json());
 
-app.use('/audio', express.static(path.join(__dirname, 'generatedAudioFiles')));
+// app.use('/audio', express.static(path.join(__dirname, 'generatedAudioFiles')));
 
 app.get('/', (req, res) => {
     res.render('index', { transcription: null, audioUrl: null });
