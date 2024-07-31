@@ -68,7 +68,7 @@ const talkToGemini = async (req, res) => {
 
     try {
         const result = await model.generateContent(userInput)
-        const response = await result.response;
+        const response = result.response;
         const transcription = response.text();
 
         // Function to truncate transcription to a specified number of sentences

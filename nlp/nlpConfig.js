@@ -8,6 +8,7 @@ const manager = new NlpManager({ languages: ['hi'] });
 // Greeting intent
 manager.addDocument('hi', 'नमस्ते', 'greeting');
 manager.addDocument('hi', 'हैलो', 'greeting');
+manager.addDocument('hi', 'हेलो', 'greeting');
 manager.addDocument('hi', 'कैसे हो?', 'greeting');
 manager.addDocument('hi', 'कोई है?', 'greeting');
 manager.addDocument('hi', 'शुभ दिन', 'greeting');
