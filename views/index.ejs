@@ -278,14 +278,12 @@
         let messageIndex = 0; // Keep track of the message index
         let talkToGeminiSwitch = false
 
-        const apiEndpoint = 'https://node-nlp.onrender.com'
-        // const apiEndpoint = 'http://localhost:5000'
+        // const apiEndpoint = 'https://node-nlp.onrender.com'
+        const apiEndpoint = 'http://localhost:5000'
 
         document.getElementById('switch-input').addEventListener('change', function () {
             // Perform some action when the switch is toggled
-            console.log('Switch toggled!');
             talkToGeminiSwitch = !talkToGeminiSwitch
-            console.log("talktogeminiSwitch", talkToGeminiSwitch)
         });
 
 
@@ -338,10 +336,8 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log("response data:-", data)
                     appendMessage(data.transcription, 'bot');
                     if (data.audioUrl) {
-                        console.log("process", data.audioUrl)
                         playAudio(data.audioUrl);
                     } else {
                         startSpeechRecognition(); // Start speech recognition if there's no audio to play
@@ -386,7 +382,6 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.audioUrl) {
-                                console.log("startSpeechRecog", data.audioUrl)
                                 playAudio(data.audioUrl);
                             } else {
                                 startSpeechRecognition(); // Start speech recognition if there's no audio to play
@@ -437,7 +432,6 @@
                 .then(data => {
                     appendMessage(data.transcription, 'bot');
                     if (data.audioUrl) {
-                        console.log("gemini", data.audioUrl)
                         playAudio(data.audioUrl);
                     } else {
                         startSpeechRecognition(); // Start speech recognition if there's no audio to play
@@ -458,7 +452,6 @@
                 .then(data => {
                     appendMessage(data.transcription, 'bot');
                     if (data.audioUrl) {
-                        console.log("node-nlp", data.audioUrl)
                         playAudio(data.audioUrl);
                     } else {
                         startSpeechRecognition(); // Start speech recognition if there's no audio to play
@@ -480,7 +473,6 @@
             fetch(`${apiEndpoint}/api/restart`)
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Chat restarted successfully');
                     // Clear all messages from the chat container
                     const chatContainer = document.getElementById('chatMessages');
                     while (chatContainer.firstChild) {

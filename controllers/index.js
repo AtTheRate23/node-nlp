@@ -55,7 +55,6 @@ const realtimeMessage = (req, res, callback) => {
                     break;
             }
 
-            console.log("transcription", transcription)
             synthesizeSpeech(transcription, callback);
         });
     } catch (error) {
@@ -178,8 +177,6 @@ const nodeNLP = async (req, res) => {
 
 const transcribeAndSpeak = (filePath, callback) => {
     const wavPath = path.join(__dirname, filePath);
-
-    console.log(wavPath)
 
     try {
         let audioConfig = sdk.AudioConfig.fromWavFileInput(fs.readFileSync(wavPath));
