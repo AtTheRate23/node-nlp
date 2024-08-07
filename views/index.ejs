@@ -241,10 +241,10 @@
 <body>
     <div class="mobile-frame">
         <div class="dynamic-island">
-            <label class="switch" title="Talk to Gemini">
+            <!-- <label class="switch" title="Talk to Gemini">
                 <input type="checkbox" id="switch-input">
                 <span class="slider round"></span>
-            </label>
+            </label> -->
         </div>
         <div class="chat-container">
             <div class="chat-messages" id="chatMessages">
@@ -252,7 +252,7 @@
             <div class="bottom-container">
                 <div class="restart-container">
                     <img src="https://img.icons8.com/ios-glyphs/30/000000/play.png" alt="Restart" class="restart-icon"
-                        onclick="nodeNLP(text='प्रारंभ')" />
+                        onclick="processStart()" />
                     <div class="restart-label">Start</div>
                 </div>
                 <div class="controls">
@@ -324,13 +324,16 @@
             };
         }
 
-        function processNextMessage() {
-            fetch(`${apiEndpoint}/api/process`, {
+        function processStart() {
+            fetch(`${apiEndpoint}/api/realtime`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ index: messageIndex })
+                body: JSON.stringify({
+                    messageIndex,
+                    text: "प्रारंभ"
+                })
             })
                 .then(response => response.json())
                 .then(data => {
@@ -375,28 +378,25 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ text: transcript })
+                        body: JSON.stringify({
+                            messageIndex,
+                            text: transcript
+                        })
                     })
                         .then(response => response.json())
                         .then(data => {
+                            appendMessage(data.transcription, 'bot')
                             if (data.audioUrl) {
                                 playAudio(data.audioUrl);
                             } else {
                                 startSpeechRecognition(); // Start speech recognition if there's no audio to play
                             }
                             document.getElementById('micIcon').classList.remove('hidden');
-                            processNextMessage(); // Process the next message after the response
+                            messageIndex++
                         });
                 }, 1000); // 1-second delay after the user stops speaking
 
                 stopSpeaking();
-                if (keywords.includes(transcript)) {
-                    processNextMessage(); // Automatically stop speech recognition
-                } else if (talkToGeminiSwitch) {
-                    geminiTalk(transcript)
-                } else {
-                    nodeNLP(transcript)
-                }
             };
 
             recognition.onerror = function (event) {
@@ -420,26 +420,6 @@
 
         function geminiTalk(text) {
             fetch(`${apiEndpoint}/api/gemini`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ text })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    appendMessage(data.transcription, 'bot');
-                    if (data.audioUrl) {
-                        playAudio(data.audioUrl);
-                    } else {
-                        startSpeechRecognition(); // Start speech recognition if there's no audio to play
-                    }
-                    document.getElementById('micIcon').classList.remove('hidden');
-                });
-        }
-
-        function nodeNLP(text) {
-            fetch(`${apiEndpoint}/api/node-nlp`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -487,94 +467,6 @@
                     console.error('Error restarting chat:', error);
                 });
         }
-        const keywords = [
-            "हां जी",
-            "हाँ जी",
-            "हां जी बताइए",
-            "हाँ जी बताइए",
-            "हां जी बोलिए",
-            "हाँ जी बोलिए",
-            "जी हां",
-            "जी हां बताइए",
-            "जी हां बोलिए",
-            "जी बोलिए",
-            "जी नहीं",
-            "हां बताइए",
-            "हाँ बताइए",
-            "हां बोलिए",
-            "हाँ बोलिए",
-            "बोलिए",
-            "बताइए",
-            "नहीं",
-            "विधान सभा",
-            "अंबाला",
-            "संविधान",
-            "राजनीति",
-            "सरकार",
-            "कुछ नहीं",
-            "कुछ भी नहीं",
-            "आंध्र प्रदेश",
-            "अरुणाचल प्रदेश",
-            "असम",
-            "बिहार",
-            "छत्तीसगढ़",
-            "गोवा",
-            "गुजरात",
-            "हरियाणा",
-            "हिमाचल प्रदेश",
-            "झारखंड",
-            "कर्नाटका",
-            "केरल",
-            "मध्य प्रदेश",
-            "महाराष्ट्र",
-            "मणिपुर",
-            "मेघालय",
-            "मिजोरम",
-            "नागालैंड",
-            "ओडिशा",
-            "पंजाब",
-            "राजस्थान",
-            "सिक्किम",
-            "तमिलनाडु",
-            "तेलंगाना",
-            "त्रिपुरा",
-            "उत्तर प्रदेश",
-            "उत्तराखंड",
-            "पश्चिम बंगाल",
-            "दिल्ली",
-            "पुडुचेरी",
-            "आंध्र प्रदेश विधान सभा",
-            "अरुणाचल प्रदेश विधान सभा",
-            "असम विधान सभा",
-            "बिहार विधान सभा",
-            "छत्तीसगढ़ विधान सभा",
-            "गोवा विधान सभा",
-            "गुजरात विधान सभा",
-            "हरियाणा विधान सभा",
-            "हिमाचल प्रदेश विधान सभा",
-            "झारखंड विधान सभा",
-            "कर्नाटका विधान सभा",
-            "केरल विधान सभा",
-            "मध्य प्रदेश विधान सभा",
-            "महाराष्ट्र विधान सभा",
-            "मणिपुर विधान सभा",
-            "मेघालय विधान सभा",
-            "मिजोरम विधान सभा",
-            "नागालैंड विधान सभा",
-            "ओडिशा विधान सभा",
-            "पंजाब विधान सभा",
-            "राजस्थान विधान सभा",
-            "सिक्किम विधान सभा",
-            "तमिलनाडु विधान सभा",
-            "तेलंगाना विधान सभा",
-            "त्रिपुरा विधान सभा",
-            "उत्तर प्रदेश विधान सभा",
-            "उत्तराखंड विधान सभा",
-            "पश्चिम बंगाल विधान सभा",
-            "दिल्ली विधान सभा",
-            "पुडुचेरी विधान सभा",
-        ];
-
     </script>
 </body>
 

@@ -2,16 +2,12 @@ const natural = require('natural');
 const fs = require('fs');
 const sdk = require('microsoft-cognitiveservices-speech-sdk');
 const { v4: uuidv4 } = require('uuid');
-const { OpenAI } = require("openai")
 const { GoogleGenerativeAI } = require("@google/generative-ai")
 const nlpService = require('../nlp/nlpService.js');
 const { rootDir } = require('../paths.js');
 const path = require('path');
 const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/convert.js');
-
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+const surveyQuestions = require('../serveyQuestions.js');
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY)
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
@@ -37,25 +33,26 @@ const processMessage = (req, res) => {
 
 const realtimeMessage = (req, res, callback) => {
     try {
-        const audioConfig = sdk.AudioConfig.fromDefaultMicrophoneInput();
-        const speechRecognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
 
-        speechRecognizer.recognizeOnceAsync(result => {
-            let transcription;
-            switch (result.reason) {
-                case sdk.ResultReason.RecognizedSpeech:
-                    transcription = result.text;
-                    break;
-                case sdk.ResultReason.NoMatch:
-                    transcription = "No speech could be recognized.";
-                    break;
-                case sdk.ResultReason.Canceled:
-                    const cancellation = sdk.CancellationDetails.fromResult(result);
-                    transcription = `Cancelled: ${cancellation.reason}`;
-                    break;
+        const response = req.body;
+        const { text, messageIndex } = response;
+        
+        // Define the transcription based on the messageIndex
+        let transcription;
+        if (messageIndex === 1) {
+            transcription = `${text} क्या आप वर्तमान पते पर vote देने के लिए registered है?`;
+        } else if (messageIndex === 6) {
+            transcription = `आपने ${text} को vote क्यों दिया?`;
+        } else {
+            transcription = surveyQuestions[messageIndex];
+        }
+
+        synthesizeSpeech(transcription, (transcription, audioUrl) => {
+            if (audioUrl) {
+                res.status(200).json({ transcription, audioUrl });
+            } else {
+                res.status(500).json({ message: 'Text-to-speech synthesis failed.' });
             }
-
-            synthesizeSpeech(transcription, callback);
         });
     } catch (error) {
         callback(`Error: ${error.message}`, null);
@@ -97,37 +94,6 @@ const talkToGemini = async (req, res) => {
     }
 }
 
-const talkToOpenAI = async (req, res) => {
-    const userInput = req.body.text;
-
-    try {
-        const response = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
-            messages: [{ role: "user", content: userInput }],
-            max_tokens: 150,
-        });
-
-        res.json({ response: response.choices[0].message.content.trim() });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'An error occurred while generating the response' });
-    }
-}
-
-const naturalNLP = (req, res) => {
-    const { userMessage } = req.body;
-
-    var tokenizer = new natural.WordTokenizer();
-
-    let tokenizedText = tokenizer.tokenize(userMessage)
-
-    let stemmedText = natural.PorterStemmer.tokenizeAndStem(userMessage)
-
-    res.status(200).json({
-        tokenizedText,
-        stemmedText
-    })
-}
 
 const synthesizeSpeech = (transcription, callback) => {
     if (!transcription) {
@@ -225,8 +191,6 @@ const restartProcessing = (req, res) => {
 
 module.exports = {
     talkToGemini,
-    talkToOpenAI,
-    naturalNLP,
     nodeNLP,
     processMessage,
     realtimeMessage,
