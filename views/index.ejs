@@ -448,24 +448,18 @@
         }
 
         function restartChat() {
-            fetch(`${apiEndpoint}/api/restart`)
-                .then(response => response.json())
-                .then(data => {
-                    // Clear all messages from the chat container
-                    const chatContainer = document.getElementById('chatMessages');
-                    while (chatContainer.firstChild) {
-                        chatContainer.removeChild(chatContainer.firstChild);
-                    }
-                    // Optionally, add a new message indicating the chat has been restarted
-                    const restartMessage = document.createElement('div');
-                    restartMessage.classList.add('chat-message', 'bot');
-                    // restartMessage.textContent = 'Chat has been restarted. You can start a new conversation.';
-                    restartMessage.textContent = 'चैट को पुनः प्रारंभ कर दिया गया है। आप एक नई बातचीत शुरू कर सकते हैं।';
-                    chatContainer.appendChild(restartMessage);
-                })
-                .catch(error => {
-                    console.error('Error restarting chat:', error);
-                });
+            // Clear all messages from the chat container
+            const chatContainer = document.getElementById('chatMessages');
+            while (chatContainer.firstChild) {
+                chatContainer.removeChild(chatContainer.firstChild);
+            }
+            // Optionally, add a new message indicating the chat has been restarted
+            const restartMessage = document.createElement('div');
+            restartMessage.classList.add('chat-message', 'bot');
+            // restartMessage.textContent = 'Chat has been restarted. You can start a new conversation.';
+            restartMessage.textContent = 'चैट को पुनः प्रारंभ कर दिया गया है। आप एक नई बातचीत शुरू कर सकते हैं।';
+            chatContainer.appendChild(restartMessage);
+            messageIndex = 0
         }
     </script>
 </body>
