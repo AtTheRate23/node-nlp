@@ -478,17 +478,19 @@
                     if (data.audioUrl === null) {
                         // Call the API with the next messageIndex
                         fetchDataAndHandleResponse(index + 1, transcript);
+                    } else if (data.transcription === "माफ करें! मैं समझ नहीं पा रही हूँ, कृपया पुनः प्रयास करें!") {
+                        // Call the API with the same messageIndex if the transcription is the specified error message
+                        startSpeechRecognition();
                     } else if (data.audioUrl) {
                         appendMessage(data.transcription, 'bot');
                         playAudio(data.audioUrl);
-                    } else if (data.transcription === "माफ करें! मैं समझ नहीं पा रही हूँ, कृपया पुनः प्रयास करें!") {
-                        // Call the API with the same messageIndex if the transcription is the specified error message
-                        fetchDataAndHandleResponse(index - 1, transcript);
+                        messageIndex++; // Increment index only after successfully playing the audio
                     } else {
+                        playAudio(data.audioUrl);
                         startSpeechRecognition(); // Restart speech recognition if no audio to play
+                        messageIndex++; // Increment index in the final else block
                     }
                     document.getElementById('micIcon').classList.remove('hidden');
-                    messageIndex++;
                 });
         }
 

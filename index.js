@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const Routes = require('./routes/index.js');
+const ScrapRoutes = require('./routes/scrap.js')
 const path = require('path')
 const cors = require('cors')
 const bodyParser = require('body-parser')
@@ -34,6 +35,7 @@ app.get('/', (req, res) => {
 
 // Routes
 app.use('/api', Routes);
+app.use('/scrap', ScrapRoutes);
 
 // app listen
 
