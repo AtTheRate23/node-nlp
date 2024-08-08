@@ -8,7 +8,7 @@
     <link rel="icon" href="/images/chat.png" type="image/png">
     <style>
         body {
-            background-color: #db9595;
+            background: linear-gradient(to right, #80b7ff, #ffae70);
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
@@ -19,9 +19,9 @@
         }
 
         .mobile-frame {
-            width: 430px;
+            width: 410px;
             /* iPhone 14 Pro Max width */
-            height: 932px;
+            height: 900px;
             /* iPhone 14 Pro Max height */
             border: 16px solid #000;
             border-radius: 36px;
@@ -235,10 +235,28 @@
         .slider.round:before {
             border-radius: 50%;
         }
+
+        .left-brand-image {
+            width: 12%;
+            height: 60px;
+            margin-bottom: 20px;
+            margin-top: -55rem;
+            margin-right: 30rem;
+        }
+
+        .right-brand-image {
+            width: 12%;
+            height: 60px;
+            margin-bottom: 20px;
+            margin-top: -53rem;
+            margin-left: 30rem;
+        }
     </style>
 </head>
 
 <body>
+    <!-- // brand image -->
+    <img src="https://d1lm766r530csk.cloudfront.net/img/logo/logo1.webp" alt="Naxtre" class="left-brand-image" />
     <div class="mobile-frame">
         <div class="dynamic-island">
             <!-- <label class="switch" title="Talk to Gemini">
@@ -268,6 +286,8 @@
             </div>
         </div>
     </div>
+    <img src="https://www.peoplesinsight.in/assets/img/logo/logo-dark5.png" alt="peopleInsight"
+        class="right-brand-image" />
 
     <script>
         let recognition;
