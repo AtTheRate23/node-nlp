@@ -128,6 +128,14 @@ const nodeNLP = async (req, res) => {
 
     try {
         const transcription = await nlpService(response);
+        // validate transcription whether it is null or not
+        if (!transcription) {
+            return res.status(200).json({
+                transcription,
+                audioUrl: null,
+                message: 'No transcription found.'
+            });
+        }
         synthesizeSpeech(transcription, (transcription, audioUrl) => {
             if (audioUrl) {
                 res.status(200).json({ transcription, audioUrl });

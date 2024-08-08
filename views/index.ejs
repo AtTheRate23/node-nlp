@@ -252,7 +252,7 @@
             <div class="bottom-container">
                 <div class="restart-container">
                     <img src="https://img.icons8.com/ios-glyphs/30/000000/play.png" alt="Restart" class="restart-icon"
-                        onclick="processStart()" />
+                        onclick="fetchDataAndHandleResponse(1, 'नहीं')" />
                     <div class="restart-label">Start</div>
                 </div>
                 <div class="controls">
@@ -276,8 +276,8 @@
         let messageIndex = 0; // Keep track of the message index
         let talkToGeminiSwitch = false
 
-        const apiEndpoint = 'https://node-nlp.onrender.com'
-        // const apiEndpoint = 'http://localhost:5000'
+        // const apiEndpoint = 'https://node-nlp.onrender.com'
+        const apiEndpoint = 'http://localhost:5000'
 
         document.getElementById('switch-input').addEventListener('change', function () {
             // Perform some action when the switch is toggled
@@ -356,6 +356,70 @@
             }
         }
 
+        // function startSpeechRecognition() {
+        //     if (!('webkitSpeechRecognition' in window)) {
+        //         alert('Your browser does not support the Web Speech API');
+        //         return;
+        //     }
+
+        //     recognition = new webkitSpeechRecognition();
+        //     recognition.lang = 'hi-IN'; // Hindi language
+        //     recognition.interimResults = false;
+        //     recognition.maxAlternatives = 1;
+
+        //     recognition.onresult = function (event) {
+        //         const transcript = event.results[0][0].transcript;
+        //         appendMessage(transcript, 'user');
+        //         // Clear previous timeout if any
+        //         clearTimeout(recognitionEndTimeout);
+        //         recognitionEndTimeout = setTimeout(() => {
+        //             fetch(`${apiEndpoint}/api/node-nlp`, {
+        //                 method: 'POST',
+        //                 headers: {
+        //                     'Content-Type': 'application/json'
+        //                 },
+        //                 body: JSON.stringify({
+        //                     messageIndex,
+        //                     text: transcript
+        //                 })
+        //             })
+        //                 .then(response => response.json())
+        //                 .then(data => {
+        //                     if (data.audioUrl === null) {
+        //                         return messageIndex++
+        //                     } else if (data.audioUrl) {
+        //                         appendMessage(data.transcription, 'bot')
+        //                         playAudio(data.audioUrl);
+        //                     } else {
+        //                         startSpeechRecognition(); // Start speech recognition if there's no audio to play
+        //                     }
+        //                     document.getElementById('micIcon').classList.remove('hidden');
+        //                     messageIndex++
+        //                 });
+        //         }, 1000); // 1-second delay after the user stops speaking
+
+        //         stopSpeaking();
+        //     };
+
+        //     recognition.onerror = function (event) {
+        //         console.error('Speech recognition error:', event.error);
+        //         document.getElementById('micIcon').classList.remove('hidden');
+        //         document.getElementById('animation').classList.remove('active');
+        //         isRecording = false;
+        //     };
+
+        //     recognition.onend = function () {
+        //         if (isRecording) {
+        //             // Restart recognition if it ends without error
+        //             startSpeechRecognition();
+        //         }
+        //     };
+
+        //     recognition.start();
+        //     document.getElementById('animation').classList.add('active');
+        //     isRecording = true;
+        // }
+
         function startSpeechRecognition() {
             if (!('webkitSpeechRecognition' in window)) {
                 alert('Your browser does not support the Web Speech API');
@@ -373,27 +437,7 @@
                 // Clear previous timeout if any
                 clearTimeout(recognitionEndTimeout);
                 recognitionEndTimeout = setTimeout(() => {
-                    fetch(`${apiEndpoint}/api/node-nlp`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            messageIndex,
-                            text: transcript
-                        })
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            appendMessage(data.transcription, 'bot')
-                            if (data.audioUrl) {
-                                playAudio(data.audioUrl);
-                            } else {
-                                startSpeechRecognition(); // Start speech recognition if there's no audio to play
-                            }
-                            document.getElementById('micIcon').classList.remove('hidden');
-                            messageIndex++
-                        });
+                    fetchDataAndHandleResponse(messageIndex, transcript);
                 }, 1000); // 1-second delay after the user stops speaking
 
                 stopSpeaking();
@@ -417,6 +461,34 @@
             document.getElementById('animation').classList.add('active');
             isRecording = true;
         }
+
+        function fetchDataAndHandleResponse(index, transcript) {
+            fetch(`${apiEndpoint}/api/node-nlp`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    messageIndex: index,
+                    text: transcript
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.audioUrl === null) {
+                        // Call the API with the next messageIndex
+                        fetchDataAndHandleResponse(index + 1, transcript);
+                    } else if (data.audioUrl) {
+                        appendMessage(data.transcription, 'bot');
+                        playAudio(data.audioUrl);
+                        document.getElementById('micIcon').classList.remove('hidden');
+                        messageIndex++;
+                    } else {
+                        startSpeechRecognition(); // Restart speech recognition if no audio to play
+                    }
+                });
+        }
+
 
         function geminiTalk(text) {
             fetch(`${apiEndpoint}/api/gemini`, {
