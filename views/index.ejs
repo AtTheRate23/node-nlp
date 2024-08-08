@@ -276,8 +276,8 @@
         let messageIndex = 0; // Keep track of the message index
         let talkToGeminiSwitch = false
 
-        const apiEndpoint = 'https://node-nlp.onrender.com'
-        // const apiEndpoint = 'http://localhost:5000'
+        // const apiEndpoint = 'https://node-nlp.onrender.com'
+        const apiEndpoint = 'http://localhost:5000'
 
         document.getElementById('switch-input').addEventListener('change', function () {
             // Perform some action when the switch is toggled
@@ -481,11 +481,11 @@
                     } else if (data.audioUrl) {
                         appendMessage(data.transcription, 'bot');
                         playAudio(data.audioUrl);
-                        document.getElementById('micIcon').classList.remove('hidden');
-                        messageIndex++;
                     } else {
                         startSpeechRecognition(); // Restart speech recognition if no audio to play
                     }
+                    document.getElementById('micIcon').classList.remove('hidden');
+                    messageIndex++;
                 });
         }
 
