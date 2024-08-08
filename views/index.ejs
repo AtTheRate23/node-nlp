@@ -483,7 +483,7 @@
                         playAudio(data.audioUrl);
                     } else if (data.transcription === "माफ करें! मैं समझ नहीं पा रही हूँ, कृपया पुनः प्रयास करें!") {
                         // Call the API with the same messageIndex if the transcription is the specified error message
-                        fetchDataAndHandleResponse(index, transcript);
+                        fetchDataAndHandleResponse(index - 1, transcript);
                     } else {
                         startSpeechRecognition(); // Restart speech recognition if no audio to play
                     }
