@@ -36,7 +36,7 @@ const realtimeMessage = (req, res, callback) => {
 
         const response = req.body;
         const { text, messageIndex } = response;
-        
+
         // Define the transcription based on the messageIndex
         let transcription;
         if (messageIndex === 1) {
@@ -124,10 +124,10 @@ const synthesizeSpeech = (transcription, callback) => {
 };
 
 const nodeNLP = async (req, res) => {
-    const { text } = req.body;
+    const response = req.body;
 
     try {
-        const transcription = await nlpService(text);
+        const transcription = await nlpService(response);
         synthesizeSpeech(transcription, (transcription, audioUrl) => {
             if (audioUrl) {
                 res.status(200).json({ transcription, audioUrl });

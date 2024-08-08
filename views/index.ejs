@@ -325,7 +325,7 @@
         }
 
         function processStart() {
-            fetch(`${apiEndpoint}/api/realtime`, {
+            fetch(`${apiEndpoint}/api/node-nlp`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -373,7 +373,7 @@
                 // Clear previous timeout if any
                 clearTimeout(recognitionEndTimeout);
                 recognitionEndTimeout = setTimeout(() => {
-                    fetch(`${apiEndpoint}/api/realtime`, {
+                    fetch(`${apiEndpoint}/api/node-nlp`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
