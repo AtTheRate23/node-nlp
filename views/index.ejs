@@ -19,7 +19,9 @@
         }
 
         .mobile-frame {
+            background-image: url(https://d1lm766r530csk.cloudfront.net/img/logo/logo1.webp);
             width: 410px;
+            /* background: no-repeat; */
             /* iPhone 14 Pro Max width */
             height: 900px;
             /* iPhone 14 Pro Max height */
@@ -67,6 +69,7 @@
         }
 
         .chat-messages {
+            opacity: 90%;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
@@ -96,7 +99,7 @@
         }
 
         .chat-message.bot {
-            background-color: #94aae5;
+            background-color: #1c5aff;
             color: #ffffff;
         }
 
@@ -174,6 +177,7 @@
         }
 
         .bottom-container {
+            /* display: none !important; */
             position: absolute;
             bottom: 0;
             display: flex;
@@ -251,6 +255,8 @@
             margin-top: -53rem;
             margin-left: 30rem;
         }
+       
+
     </style>
 </head>
 
@@ -296,8 +302,8 @@
         let messageIndex = 0; // Keep track of the message index
         let talkToGeminiSwitch = false
 
-        const apiEndpoint = 'https://node-nlp.onrender.com'
-        // const apiEndpoint = 'http://localhost:5000'
+        // const apiEndpoint = 'https://node-nlp.onrender.com'
+        const apiEndpoint = 'http://localhost:5000'
 
         document.getElementById('switch-input').addEventListener('change', function () {
             // Perform some action when the switch is toggled
@@ -458,7 +464,7 @@
                 clearTimeout(recognitionEndTimeout);
                 recognitionEndTimeout = setTimeout(() => {
                     fetchDataAndHandleResponse(messageIndex, transcript);
-                }, 1000); // 1-second delay after the user stops speaking
+                }, 300); // 1-second delay after the user stops speaking
 
                 stopSpeaking();
             };

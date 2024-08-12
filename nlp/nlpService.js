@@ -49,10 +49,11 @@ const politicalPartiesKeywords = [
     'सपा संगठन'
 ];
 
-
+const answer = [
+    "हां जी",
+];
 
 const processMessage = async ({ text, messageIndex }) => {
-
     // Check if messageIndex is 1 and text belongs to notKeyword
     if (messageIndex === 1 && notKeyword.includes(text)) {
         return null;
@@ -60,21 +61,37 @@ const processMessage = async ({ text, messageIndex }) => {
 
     // Define the transcription based on the messageIndex
     let transcription;
-    if (messageIndex === 1) {
-        transcription = `${text} क्या आप वर्तमान पते पर vote देने के लिए registered है?`;
-    } else if (messageIndex === 6) {
-        if (!politicalPartiesKeywords.includes(text)) {
-            transcription = 'माफ करें! मैं समझ नहीं पा रही हूँ, कृपया पुनः प्रयास करें!';
-        } else {
-            transcription = `आपने ${text} को vote क्यों दिया?`;
-        }
-    } else {
-        transcription = surveyQuestions[messageIndex];
+
+    switch (messageIndex) {
+        case 1:
+            transcription = `${text} जी क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?`;
+            break;
+        
+        case 2:
+            if (answer.includes(text)) {
+                transcription = 'क्या आप केंद्र सरकार के काम से खुश हैं?';
+            } else {
+                transcription = 'अगर नहीं तो कृपया आपना विधानसभा क्षेत्र बताये ?';
+            }
+            break;
+            
+        case 8:
+            if (politicalPartiesKeywords.includes(text)) {
+                transcription = `आपका ${text} को वोट देने का मुख्य कारण क्या है?`;
+            } else {
+                transcription = 'माफ करें! मैं समझ नहीं पा रही हूँ, कृपया पुनः प्रयास करें!';
+            }
+            break;
+
+        default:
+            transcription = surveyQuestions[messageIndex];
+            break;
     }
 
-    // // Process the message using Hindi language
+    // Process the message using Hindi language (if needed)
     // const responseObj = await manager.process('hi', text);
     // return responseObj.answer || 'माफ करें! मैं समझ नहीं पा रही हूँ, कृपया पुनः प्रयास करें!';
+
     return transcription;
 };
 

@@ -40,9 +40,10 @@ const realtimeMessage = (req, res, callback) => {
         // Define the transcription based on the messageIndex
         let transcription;
         if (messageIndex === 1) {
-            transcription = `${text} क्या आप वर्तमान पते पर vote देने के लिए registered है?`;
-        } else if (messageIndex === 6) {
-            transcription = `आपने ${text} को vote क्यों दिया?`;
+            // transcription = `${text} क्या आप वर्तमान पते पर vote देने के लिए registered है?`;
+            transcription = `"क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं",`;
+        } else if (messageIndex === 9) {
+            transcription = `${text} को वोट देने का मुख्य कारण क्या है?`;
         } else {
             transcription = surveyQuestions[messageIndex];
         }
