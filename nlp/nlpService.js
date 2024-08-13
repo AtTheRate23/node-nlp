@@ -175,6 +175,14 @@ const processMessage = async ({ text, messageIndex, prevTranscription }) => {
         case 9:
             if (prevTranscription.includes('वोट देने का मुख्य कारण')) {
                 responses.vote_reason = text
+                Voting.store_resp(responses, (err, result) => {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        // console.log(result);
+                        console.log('response stored in the database successfully')
+                    }
+                })
                 transcription = 'आपकी प्रतिक्रिया और समय के लिए धन्यवाद। आपका दिन शुभ हो।';
             } else if (prevTranscription === 'माफ करें! मैं समझ नहीं पा रही हूँ, कृपया पुनः प्रयास करें!') {
                 if (politicalPartiesKeywords.includes(text)) {
