@@ -301,6 +301,7 @@
         let recognitionEndTimeout;
         let messageIndex = 0; // Keep track of the message index
         let talkToGeminiSwitch = false
+        let prevTranscription = ''
 
         // const apiEndpoint = 'https://node-nlp.onrender.com'
         const apiEndpoint = 'http://localhost:5000'
@@ -496,7 +497,8 @@
                 },
                 body: JSON.stringify({
                     messageIndex: index,
-                    text: transcript
+                    text: transcript,
+                    prevTranscription
                 })
             })
                 .then(response => response.json())
@@ -509,6 +511,7 @@
                         startSpeechRecognition();
                     } else if (data.audioUrl) {
                         appendMessage(data.transcription, 'bot');
+                        prevTranscription = data.transcription;
                         playAudio(data.audioUrl);
                         messageIndex++; // Increment index only after successfully playing the audio
                     } else {
