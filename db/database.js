@@ -2,10 +2,10 @@
 const mysql = require('mysql');
 
 const connection = mysql.createConnection({
-  host: 'oakter.cuzlniri5zxa.ap-south-1.rds.amazonaws.com',
-  user: 'root',
-  password: 'poiuytrewq',
-  database: 'voice_bot'
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME
 });
 
 connection.connect((err) => {
