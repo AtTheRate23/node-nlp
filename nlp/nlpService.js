@@ -8,7 +8,13 @@ const notKeyword = [
     "ना",
     "न",
     "ना ही",
-    "नहीं बता सकते"
+    "नहीं बता सकते",
+    "नहीं।",
+    "जी नहीं।",
+    "ना।",
+    "न।",
+    "ना ही।",
+    "नहीं बता सकते।",
 ];
 
 const politicalPartiesKeywords = [
@@ -78,8 +84,6 @@ const processMessage = async ({ text, messageIndex, prevTranscription }) => {
 
     // Define the transcription based on the messageIndex
     let transcription;
-
-    console.log("prev", prevTranscription)
 
     switch (messageIndex) {
         case 1:

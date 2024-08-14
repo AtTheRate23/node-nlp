@@ -255,8 +255,6 @@
             margin-top: -53rem;
             margin-left: 30rem;
         }
-       
-
     </style>
 </head>
 
@@ -296,6 +294,14 @@
         class="right-brand-image" />
 
     <script>
+        var subscriptionKey = "5b0e8f632ebf41edb22f3e34d6de23ab";
+        var serviceRegion = "centralindia";
+        var languageTargetOptions = "hi-IN"; 
+        var languageSourceOptions = "hi-IN"; // Default source language (e.g., Hindi)
+
+        var SpeechSDK;
+        var recognizer;
+
         let recognition;
         let isRecording = false;
         let recognitionEndTimeout;
@@ -309,6 +315,13 @@
         document.getElementById('switch-input').addEventListener('change', function () {
             // Perform some action when the switch is toggled
             talkToGeminiSwitch = !talkToGeminiSwitch
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            if (!!window.SpeechSDK) {
+                SpeechSDK = window.SpeechSDK;
+                document.getElementById('micIcon').classList.remove('hidden');
+            }
         });
 
 
@@ -448,43 +461,34 @@
         // }
 
         function startSpeechRecognition() {
-            if (!('webkitSpeechRecognition' in window)) {
-                alert('Your browser does not support the Web Speech API');
-                return;
-            }
+            var speechConfig = SpeechSDK.SpeechTranslationConfig.fromSubscription(subscriptionKey, serviceRegion);
+            speechConfig.speechRecognitionLanguage = languageSourceOptions;
+            speechConfig.addTargetLanguage(languageTargetOptions);
 
-            recognition = new webkitSpeechRecognition();
-            recognition.lang = 'hi-IN'; // Hindi language
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
+            var audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+            recognizer = new SpeechSDK.TranslationRecognizer(speechConfig, audioConfig);
 
-            recognition.onresult = function (event) {
-                const transcript = event.results[0][0].transcript;
-                appendMessage(transcript, 'user');
-                // Clear previous timeout if any
-                clearTimeout(recognitionEndTimeout);
-                recognitionEndTimeout = setTimeout(() => {
-                    fetchDataAndHandleResponse(messageIndex, transcript);
-                }, 300); // 1-second delay after the user stops speaking
-
-                stopSpeaking();
-            };
-
-            recognition.onerror = function (event) {
-                console.error('Speech recognition error:', event.error);
-                document.getElementById('micIcon').classList.remove('hidden');
-                document.getElementById('animation').classList.remove('active');
-                isRecording = false;
-            };
-
-            recognition.onend = function () {
-                if (isRecording) {
-                    // Restart recognition if it ends without error
-                    startSpeechRecognition();
+            recognizer.recognizeOnceAsync(
+                function (result) {
+                    isRecording = false;
+                    if (result.reason === SpeechSDK.ResultReason.TranslatedSpeech) {
+                        // const transcript = result.translations.get(languageTargetOptions);
+                        const transcript = result.privText;
+                        appendMessage(transcript, 'user');
+                        fetchDataAndHandleResponse(messageIndex, transcript);
+                    }
+                    recognizer.close();
+                    recognizer = undefined;
+                    document.getElementById('animation').classList.remove('active');
+                },
+                function (err) {
+                    console.error('Speech recognition error:', err);
+                    recognizer.close();
+                    recognizer = undefined;
+                    document.getElementById('animation').classList.remove('active');
                 }
-            };
+            );
 
-            recognition.start();
             document.getElementById('animation').classList.add('active');
             isRecording = true;
         }
@@ -545,11 +549,10 @@
         }
 
         function stopSpeaking() {
-            if (isRecording) {
-                recognition.stop();
-                document.getElementById('micIcon').classList.remove('hidden');
-                document.getElementById('animation').classList.remove('active');
+            if (isRecording && recognizer) {
+                recognizer.stopContinuousRecognitionAsync();
                 isRecording = false;
+                document.getElementById('animation').classList.remove('active');
             }
         }
 
@@ -568,6 +571,8 @@
             messageIndex = 0
         }
     </script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
 </body>
 
 </html>
