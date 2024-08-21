@@ -8,6 +8,7 @@ const { rootDir } = require('../paths.js');
 const path = require('path');
 const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/convert.js');
 const surveyQuestions = require('../serveyQuestions.js');
+const Voting = require('../models/vote.js');
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY)
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
@@ -198,11 +199,39 @@ const restartProcessing = (req, res) => {
     res.status(200).json({ message: 'Processing restarted.' });
 }
 
+const getName = (req, res) => {
+    // const part_no = req.body.part_no;
+    let names = []
+    const part_no = 48;
+    if (!part_no) {
+        return res.status(400).json({ message: 'Part No is required.' });
+    }
+    Voting.get_name_data(part_no, (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'An error occurred while fetching the name data.' });
+        }
+        names = formattedName(result)
+        res.json({
+            success: true,
+            message: `Name successfully Retrieved for Part No ${part_no}`,
+            names: names
+        });
+    })
+    return names
+}
+
+const formattedName = (data) => {
+    const names = data.map(item => item.FIRSTNAME_EN);
+    return names
+}
+
 module.exports = {
     talkToGemini,
     nodeNLP,
     processMessage,
     realtimeMessage,
     deleteAudio,
-    restartProcessing
+    restartProcessing,
+    getName
 };

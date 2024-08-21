@@ -1,6 +1,8 @@
 const manager = require('./nlpConfig.js');
 const surveyQuestions = require('../serveyQuestions');
 const Voting = require('../models/vote.js');
+const axios = require('axios');
+const { translate } = require('bing-translate-api');
 
 const notKeyword = [
     "नहीं",
@@ -76,23 +78,129 @@ const responses = {
     vote_reason: ''
 };
 
+
+function getName(part_no, callback) {
+    if (!part_no) {
+        return res.status(400).json({ message: 'Part No is required.' });
+    }
+    Voting.get_name_data(part_no, (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'An error occurred while fetching the name data.' });
+        }
+        const names = result.map(item => item.FIRSTNAME_EN);
+        callback(null, names); // Use the callback to pass names
+    });
+}
+
+// // Function to translate text to English using LibreTranslate// Function to translate text to English using Bing Translator API
+// async function translateToEnglish(text) {
+//     try {
+//         const result = await translate(text, null, 'en');
+//         return result.translation;
+//     } catch (error) {
+//         console.error('Error translating text:', error);
+//         throw error;
+//     }
+// }
+
+const nameArray = [
+    "परमजीत",
+    "जय भगवान",
+    "संदीप यादव",
+    "अशोक कुमार",
+    "सतवीर",
+    "सुनील",
+    "मुक्ति सिदाना",
+    "गौरव शर्मा",
+    "निर्मल रानी",
+    "शिल्पा कटारिया",
+    "सुषमा चौधरी",
+    "चंदर पाटी",
+    "हिमांशु सिंगला",
+    "रामंदिप कौर",
+    "रिंकू",
+    "रिंकू",
+    "उषा रानी",
+    "हरविंदर सिंह",
+    "मणिता",
+    "जस पाल",
+    "इंदरजीत कौर",
+    "प्रिंस स्याल",
+    "नरेश",
+    "दिनेश",
+    "सुषिता",
+    "पंकज",
+    "छोटू",
+    "सुरेश",
+    "हुकम दाई",
+    "वीरेंद्र सिंह",
+    "पूजा",
+    "राजेश गुप्ता",
+    "उर्मिला देवी",
+    "सोनिया",
+    "शिंगारा राम",
+    "शामशेर सिंह",
+    "शिवानी भारद्वाज",
+    "मदन लाल",
+    "सुलेंद्र कुमार",
+    "सीमा रानी",
+    "दलजीत कुमार",
+    "सुनील कुमार",
+    "सोमिता",
+    "दीपक कुमार",
+    "हरिश कुमार",
+    "दामनजीत सिंह",
+    "कमल कुमार"
+]
+
+
+
 const processMessage = async ({ text, messageIndex, prevTranscription }) => {
-    // Check if messageIndex is 1 and text belongs to notKeyword
-    // if (messageIndex === 1 && notKeyword.includes(text)) {
-    //     return null;
-    // }
 
     // Define the transcription based on the messageIndex
     let transcription;
 
     switch (messageIndex) {
         case 1:
-            if (notKeyword.includes(text)) {
-                transcription = 'कोई चिंता नहीं, क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?'
+            // Normalize and split text
+            const normalizeText = (text) => text.replace(/[।,؟!]/g, '').trim().toUpperCase();
+            const splitWords = normalizeText(text).split(/\s+/);
+
+            // // Fetch the names from the database
+            // getName(48, (err, names) => {
+            //     if (err) {
+            //         console.error(err);
+            //     } else {
+            //         // Normalize names array
+            //         const normalizedNames = names.map(name => normalizeText(name));  // array
+
+            // Check if any of the split words match a name in the database
+            let matchedName;
+            for (const word of splitWords) {
+                for (const name of nameArray) {
+                    if (name.includes(word)) {
+                        matchedName = word;
+                        break;
+                    }
+                }
+                if (matchedName) {
+                    break;
+                }
+            }
+
+            if (matchedName) {
+                transcription = `${matchedName} जी क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?`;
+                responses.name = text;
+            } else if (notKeyword.includes(text)) {
+                transcription = 'कोई चिंता नहीं, क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?';
             } else {
                 transcription = `${text} जी क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?`;
                 responses.name = text;
             }
+            // Continue with the next steps in the flow
+            // }
+            // });
             break;
 
         case 2:
