@@ -155,176 +155,318 @@ const nameArray = [
 ]
 
 
+let responseId;
 
 const processMessage = async ({ text, messageIndex, prevTranscription }) => {
 
-    // Define the transcription based on the messageIndex
-    let transcription;
+    try {
+        // if messageIndex == 0 then insert
+        if (messageIndex == 0) {
+            // Insert an empty response and get the ID
+            await new Promise((resolve, reject) => {
+                Voting.insertEmptyResponse(responses, (err, id) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        responseId = id;
+                        resolve();
+                    }
+                });
+            });
+        }
 
-    switch (messageIndex) {
-        case 1:
-            // Normalize and split text
-            const normalizeText = (text) => text.replace(/[।,؟!]/g, '').trim().toUpperCase();
-            const splitWords = normalizeText(text).split(/\s+/);
+        // Define the transcription based on the messageIndex
+        let transcription;
 
-            // // Fetch the names from the database
-            // getName(48, (err, names) => {
-            //     if (err) {
-            //         console.error(err);
-            //     } else {
-            //         // Normalize names array
-            //         const normalizedNames = names.map(name => normalizeText(name));  // array
+        switch (messageIndex) {
+            case 1:
+                // Normalize and split text
+                const normalizeText = (text) => text.replace(/[।,؟!]/g, '').trim().toUpperCase();
+                const splitWords = normalizeText(text).split(/\s+/);
 
-            // Check if any of the split words match a name in the database
-            let matchedName;
-            for (const word of splitWords) {
-                for (const name of nameArray) {
-                    if (name.includes(word)) {
-                        matchedName = word;
+                // // Fetch the names from the database
+                // getName(48, (err, names) => {
+                //     if (err) {
+                //         console.error(err);
+                //     } else {
+                //         // Normalize names array
+                //         const normalizedNames = names.map(name => normalizeText(name));  // array
+
+                // Check if any of the split words match a name in the database
+                let matchedName;
+                for (const word of splitWords) {
+                    for (const name of nameArray) {
+                        if (name.includes(word)) {
+                            matchedName = word;
+                            break;
+                        }
+                    }
+                    if (matchedName) {
                         break;
                     }
                 }
+
                 if (matchedName) {
-                    break;
+                    transcription = `${matchedName} जी क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?`;
+                    responses.name = text;
+                } else if (notKeyword.includes(text)) {
+                    responses.name = text;
+                    transcription = 'कोई चिंता नहीं, क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?';
+                } else {
+                    responses.name = text;
+                    transcription = 'कोई चिंता नहीं, क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?';
                 }
-            }
 
-            if (matchedName) {
-                transcription = `${matchedName} जी क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?`;
-                responses.name = text;
-            } else if (notKeyword.includes(text)) {
-                responses.name = text;
-                transcription = 'कोई चिंता नहीं, क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?';
-            } else {
-                responses.name = text;
-                transcription = 'कोई चिंता नहीं, क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?';
-            }
-            // Continue with the next steps in the flow
-            // }
-            // });
-            break;
+                await new Promise((resolve, reject) => {
+                    Voting.updateResponse(responseId, { name: text }, (err) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve();
+                        }
+                    });
+                });
+                // Continue with the next steps in the flow
+                // }
+                // });
+                break;
 
-        case 2:
-            if (notKeyword.includes(text)) {
-                transcription = 'अगर नहीं तो कृपया आपना विधानसभा क्षेत्र बताये ?';
-            } else {
-                transcription = 'क्या आप केंद्र सरकार के काम से खुश हैं ?';
-                responses.assembly_name = 'कालका';
-            }
-            break;
+            case 2:
+                if (notKeyword.includes(text)) {
+                    transcription = 'अगर नहीं तो कृपया आपना विधानसभा क्षेत्र बताये ?';
+                } else {
+                    transcription = 'क्या आप केंद्र सरकार के काम से खुश हैं ?';
+                    responses.assembly_name = 'कालका';
+                    await new Promise((resolve, reject) => {
+                        Voting.updateResponse(responseId, { assembly_name: 'कालका' }, (err) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
+                }
+                break;
 
-        case 3:
-            if (prevTranscription === 'अगर नहीं तो कृपया आपना विधानसभा क्षेत्र बताये ?') {
-                responses.assembly_name = text
-                transcription = 'क्या आप केंद्र सरकार के काम से खुश हैं ?';
-            } else if (prevTranscription === 'क्या आप केंद्र सरकार के काम से खुश हैं ?') {
-                transcription = 'क्या आप राज्य सरकार के काम से खुश हैं ?';
-                responses.central_govt_satisfaction = text
-            }
-            break;
+            case 3:
+                if (prevTranscription === 'अगर नहीं तो कृपया आपना विधानसभा क्षेत्र बताये ?') {
+                    responses.assembly_name = text
+                    transcription = 'क्या आप केंद्र सरकार के काम से खुश हैं ?';
+                    await new Promise((resolve, reject) => {
+                        Voting.updateResponse(responseId, { assembly_name: text }, (err) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
+                } else if (prevTranscription === 'क्या आप केंद्र सरकार के काम से खुश हैं ?') {
+                    transcription = 'क्या आप राज्य सरकार के काम से खुश हैं ?';
+                    responses.central_govt_satisfaction = text
+                    await new Promise((resolve, reject) => {
+                        Voting.updateResponse(responseId, { central_govt_satisfaction: text }, (err) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
+                }
+                break;
 
-        case 4:
-            if (prevTranscription === 'क्या आप केंद्र सरकार के काम से खुश हैं ?') {
-                responses.central_govt_satisfaction = text
-                transcription = 'क्या आप राज्य सरकार के काम से खुश हैं ?';
-            } else if (prevTranscription === 'क्या आप राज्य सरकार के काम से खुश हैं ?') {
-                responses.state_govt_satisfaction = text
-                transcription = 'क्या आप अपने विधायक के काम से खुश हैं ?';
-            }
-            break;
+            case 4:
+                if (prevTranscription === 'क्या आप केंद्र सरकार के काम से खुश हैं ?') {
+                    responses.central_govt_satisfaction = text
+                    transcription = 'क्या आप राज्य सरकार के काम से खुश हैं ?';
+                    await new Promise((resolve, reject) => {
+                        Voting.updateResponse(responseId, { central_govt_satisfaction: text }, (err) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
+                } else if (prevTranscription === 'क्या आप राज्य सरकार के काम से खुश हैं ?') {
+                    responses.state_govt_satisfaction = text
+                    transcription = 'क्या आप अपने विधायक के काम से खुश हैं ?';
+                    await new Promise((resolve, reject) => {
+                        Voting.updateResponse(responseId, { state_govt_satisfaction: text }, (err) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
+                }
+                break;
 
-        case 5:
-            if (prevTranscription === 'क्या आप अपने विधायक के काम से खुश हैं ?') {
-                responses.mla_satisfaction = text
-                transcription = 'कृपया बताए कि आपने 2019 के विधान सभा चुनाव में किसे vote दिया था ?';
-            } else if (prevTranscription === 'क्या आप राज्य सरकार के काम से खुश हैं ?') {
-                responses.state_govt_satisfaction = text
-                transcription = 'क्या आप अपने विधायक के काम से खुश हैं ?';
-            }
-            break;
+            case 5:
+                if (prevTranscription === 'क्या आप अपने विधायक के काम से खुश हैं ?') {
+                    responses.mla_satisfaction = text
+                    transcription = 'कृपया बताए कि आपने 2019 के विधान सभा चुनाव में किसे vote दिया था ?';
+                    await new Promise((resolve, reject) => {
+                        Voting.updateResponse(responseId, { mla_satisfaction: text }, (err) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
+                } else if (prevTranscription === 'क्या आप राज्य सरकार के काम से खुश हैं ?') {
+                    responses.state_govt_satisfaction = text
+                    transcription = 'क्या आप अपने विधायक के काम से खुश हैं ?';
+                    await new Promise((resolve, reject) => {
+                        Voting.updateResponse(responseId, { state_govt_satisfaction: text }, (err) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
+                }
+                break;
 
-        case 6:
-            if (prevTranscription === 'कृपया बताए कि आपने 2019 के विधान सभा चुनाव में किसे vote दिया था ?') {
-                responses.vote_2019 = text
-                transcription = 'आप आगामी विधान सभा चुनावों में किस party को वोट देंगे ?';
-            } else if (prevTranscription === 'क्या आप अपने विधायक के काम से खुश हैं ?') {
-                responses.mla_satisfaction = text
-                transcription = 'कृपया बताए कि आपने 2019 के विधान सभा चुनाव में किसे vote दिया था ?';
-            }
-            break;
+            case 6:
+                if (prevTranscription === 'कृपया बताए कि आपने 2019 के विधान सभा चुनाव में किसे vote दिया था ?') {
+                    responses.vote_2019 = text
+                    transcription = 'आप आगामी विधान सभा चुनावों में किस party को वोट देंगे ?';
+                    await new Promise((resolve, reject) => {
+                        Voting.updateResponse(responseId, { vote_2019: text }, (err) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
+                } else if (prevTranscription === 'क्या आप अपने विधायक के काम से खुश हैं ?') {
+                    responses.mla_satisfaction = text
+                    transcription = 'कृपया बताए कि आपने 2019 के विधान सभा चुनाव में किसे vote दिया था ?';
+                    await new Promise((resolve, reject) => {
+                        Voting.updateResponse(responseId, { mla_satisfaction: text }, (err) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
+                }
+                break;
 
-        case 7:
-            if (prevTranscription === 'आप आगामी विधान सभा चुनावों में किस party को वोट देंगे ?') {
-                responses.vote_upcoming = text
-                transcription = `आपका ${text} को वोट देने का मुख्य कारण क्या है?`;
-            } else if (prevTranscription === 'कृपया बताए कि आपने 2019 के विधान सभा चुनाव में किसे vote दिया था ?') {
-                responses.vote_2019 = text
-                transcription = 'आप आगामी विधान सभा चुनावों में किस party को वोट देंगे ?';
-            }
-            break;
-
-        case 8:
-            if (prevTranscription === 'आप आगामी विधान सभा चुनावों में किस party को वोट देंगे ?') {
-                if (politicalPartiesKeywords.includes(text)) {
+            case 7:
+                if (prevTranscription === 'आप आगामी विधान सभा चुनावों में किस party को वोट देंगे ?') {
                     responses.vote_upcoming = text
                     transcription = `आपका ${text} को वोट देने का मुख्य कारण क्या है?`;
-                } else {
-                    transcription = 'माफ करें! मैं समझ नहीं पा रही हूँ, कृपया पुनः प्रयास करें!';
+                    await new Promise((resolve, reject) => {
+                        Voting.updateResponse(responseId, { vote_upcoming: text }, (err) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
+                } else if (prevTranscription === 'कृपया बताए कि आपने 2019 के विधान सभा चुनाव में किसे vote दिया था ?') {
+                    responses.vote_2019 = text
+                    transcription = 'आप आगामी विधान सभा चुनावों में किस party को वोट देंगे ?';
+                    await new Promise((resolve, reject) => {
+                        Voting.updateResponse(responseId, { vote_2019: text }, (err) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
                 }
-            } else if (prevTranscription.includes('वोट देने का मुख्य कारण')) {
-                responses.vote_reason = text
-                Voting.store_resp(responses, (err, result) => {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        // console.log(result);
-                        console.log('response stored in the database successfully')
-                    }
-                })
-                transcription = 'आपकी प्रतिक्रिया और समय के लिए धन्यवाद। आपका दिन शुभ हो।';
-            }
-            break;
+                break;
 
-        case 9:
-            if (prevTranscription.includes('वोट देने का मुख्य कारण')) {
-                responses.vote_reason = text
-                Voting.store_resp(responses, (err, result) => {
-                    if (err) {
-                        console.log(err);
+            case 8:
+                if (prevTranscription === 'आप आगामी विधान सभा चुनावों में किस party को वोट देंगे ?') {
+                    if (politicalPartiesKeywords.includes(text)) {
+                        responses.vote_upcoming = text
+                        transcription = `आपका ${text} को वोट देने का मुख्य कारण क्या है?`;
+                        await new Promise((resolve, reject) => {
+                            Voting.updateResponse(responseId, { vote_upcoming: text }, (err) => {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    resolve();
+                                }
+                            });
+                        });
                     } else {
-                        // console.log(result);
-                        console.log('response stored in the database successfully')
+                        transcription = 'माफ करें! मैं समझ नहीं पा रही हूँ, कृपया पुनः प्रयास करें!';
                     }
-                })
-                transcription = 'आपकी प्रतिक्रिया और समय के लिए धन्यवाद। आपका दिन शुभ हो।';
-            } else if (prevTranscription === 'माफ करें! मैं समझ नहीं पा रही हूँ, कृपया पुनः प्रयास करें!') {
-                if (politicalPartiesKeywords.includes(text)) {
+                } else if (prevTranscription.includes('वोट देने का मुख्य कारण')) {
                     responses.vote_reason = text
-                    Voting.store_resp(responses, (err, result) => {
-                        if (err) {
-                            console.log(err);
-                        } else {
-                            // console.log(result);
-                            console.log('response stored in the database successfully')
-                        }
-                    })
-                    transcription = `आपकी प्रतिक्रिया और समय के लिए धन्यवाद। आपका दिन शुभ हो।`;
-                } else {
-                    transcription = 'माफ करें! मैं समझ नहीं पा रही हूँ, कृपया पुनः प्रयास करें!';
+                    await new Promise((resolve, reject) => {
+                        Voting.updateResponse(responseId, { vote_reason: text }, (err) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
+                    transcription = 'आपकी प्रतिक्रिया और समय के लिए धन्यवाद। आपका दिन शुभ हो।';
                 }
-            }
-            break;
+                break;
 
-        default:
-            transcription = surveyQuestions[messageIndex];
-            break;
+            case 9:
+                if (prevTranscription.includes('वोट देने का मुख्य कारण')) {
+                    responses.vote_reason = text
+                    await new Promise((resolve, reject) => {
+                        Voting.updateResponse(responseId, { vote_reason: text }, (err) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve();
+                            }
+                        });
+                    });
+                    transcription = 'आपकी प्रतिक्रिया और समय के लिए धन्यवाद। आपका दिन शुभ हो।';
+                } else if (prevTranscription === 'माफ करें! मैं समझ नहीं पा रही हूँ, कृपया पुनः प्रयास करें!') {
+                    if (politicalPartiesKeywords.includes(text)) {
+                        responses.vote_reason = text
+                        await new Promise((resolve, reject) => {
+                            Voting.updateResponse(responseId, { vote_reason: text }, (err) => {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    resolve();
+                                }
+                            });
+                        });
+                        transcription = `आपकी प्रतिक्रिया और समय के लिए धन्यवाद। आपका दिन शुभ हो।`;
+                    } else {
+                        transcription = 'माफ करें! मैं समझ नहीं पा रही हूँ, कृपया पुनः प्रयास करें!';
+                    }
+                }
+                break;
+
+            default:
+                transcription = surveyQuestions[messageIndex];
+                break;
+        }
+
+        // Process the message using Hindi language (if needed)
+        // const responseObj = await manager.process('hi', text);
+        // return responseObj.answer || 'माफ करें! मैं समझ नहीं पा रही हूँ, कृपया पुनः प्रयास करें!';
+
+        return transcription;
+
+    } catch (err) {
+        console.error(err);
     }
-
-    // Process the message using Hindi language (if needed)
-    // const responseObj = await manager.process('hi', text);
-    // return responseObj.answer || 'माफ करें! मैं समझ नहीं पा रही हूँ, कृपया पुनः प्रयास करें!';
-
-    return transcription;
 };
 
 module.exports = processMessage;

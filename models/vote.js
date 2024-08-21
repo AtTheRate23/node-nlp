@@ -7,6 +7,20 @@ class Voting {
         db.query('INSERT INTO SurveyResponses SET ?', responses, callback);
     }
 
+    static insertEmptyResponse(responses, callback) {
+        db.query('INSERT INTO SurveyResponses SET ?', responses, (err, result) => {
+            if (err) {
+                callback(err);
+            } else {
+                callback(null, result.insertId);
+            }
+        });
+    }
+
+    static updateResponse(responseId, data, callback) {
+        db.query('UPDATE SurveyResponses SET ? WHERE id = ?', [data, responseId], callback);
+    }
+
     // MSSQL database get data with integer part_no
     static get_name_data(part_no, callback) {
         // Create a new request from the connection pool
