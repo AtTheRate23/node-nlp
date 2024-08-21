@@ -193,10 +193,11 @@ const processMessage = async ({ text, messageIndex, prevTranscription }) => {
                 transcription = `${matchedName} जी क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?`;
                 responses.name = text;
             } else if (notKeyword.includes(text)) {
+                responses.name = text;
                 transcription = 'कोई चिंता नहीं, क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?';
             } else {
-                transcription = `${text} जी क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?`;
                 responses.name = text;
+                transcription = 'कोई चिंता नहीं, क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?';
             }
             // Continue with the next steps in the flow
             // }
