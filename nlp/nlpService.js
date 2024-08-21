@@ -110,6 +110,7 @@ const nameArray = [
     "संदीप यादव",
     "अशोक कुमार",
     "सतवीर",
+    "सतबीर",
     "सुनील",
     "मुक्ति सिदाना",
     "गौरव शर्मा",
@@ -151,7 +152,12 @@ const nameArray = [
     "दीपक कुमार",
     "हरिश कुमार",
     "दामनजीत सिंह",
-    "कमल कुमार"
+    "कमल कुमार",
+    "सौरव",
+    "निखिल गुप्ता",
+    "आदित्य",
+    "संदीप गुप्ता",
+    "प्रिय रंजन समल"
 ]
 
 const updateResponse = async (fieldName, value) => {
@@ -224,10 +230,10 @@ const processMessage = async ({ text, messageIndex, prevTranscription }) => {
                     responses.name = text;
                 } else if (notKeyword.includes(text)) {
                     responses.name = text;
-                    transcription = 'कोई चिंता नहीं, क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?';
+                    transcription = 'क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?';
                 } else {
                     responses.name = text;
-                    transcription = 'कोई चिंता नहीं, क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?';
+                    transcription = 'क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?';
                 }
 
                 updateResponse('name', text)
