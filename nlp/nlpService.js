@@ -67,6 +67,18 @@ const answer = [
 ];
 
 // Object to store responses temporarily
+const initial_responses = {
+    name: '',
+    assembly_name: '',
+    central_govt_satisfaction: '',
+    state_govt_satisfaction: '',
+    mla_satisfaction: '',
+    vote_2019: '',
+    vote_upcoming: '',
+    vote_reason: ''
+};
+
+// Object to store responses temporarily
 const responses = {
     name: '',
     assembly_name: '',
@@ -79,17 +91,17 @@ const responses = {
 };
 
 
-function getName(part_no, callback) {
-    if (!part_no) {
-        return res.status(400).json({ message: 'Part No is required.' });
-    }
-    Voting.get_name_data(part_no, (err, result) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ message: 'An error occurred while fetching the name data.' });
-        }
-        const names = result.map(item => item.FIRSTNAME_EN);
-        callback(null, names); // Use the callback to pass names
+function getName() {
+    return new Promise((resolve, reject) => {
+        Voting.get_name_data((err, result) => {
+            if (err) {
+                console.error(err);
+                reject(err);
+            } else {
+                const names = result.map(item => item.name);
+                resolve(names);
+            }
+        });
     });
 }
 
@@ -162,7 +174,6 @@ const nameArray = [
 
 const updateResponse = async (fieldName, value) => {
     await new Promise((resolve, reject) => {
-        // console.log({[fieldName]: value})
         Voting.updateResponse(responseId, { [fieldName]: value }, (err) => {
             if (err) {
                 reject(err);
@@ -183,7 +194,7 @@ const processMessage = async ({ text, messageIndex, prevTranscription }) => {
         if (messageIndex == 0) {
             // Insert an empty response and get the ID
             await new Promise((resolve, reject) => {
-                Voting.insertEmptyResponse(responses, (err, id) => {
+                Voting.insertEmptyResponse(initial_responses, (err, id) => {
                     if (err) {
                         reject(err);
                     } else {
@@ -199,29 +210,18 @@ const processMessage = async ({ text, messageIndex, prevTranscription }) => {
 
         switch (messageIndex) {
             case 1:
-                // Normalize and split text
-                const normalizeText = (text) => text.replace(/[।,؟!]/g, '').trim().toUpperCase();
-                const splitWords = normalizeText(text).split(/\s+/);
-
-                // // Fetch the names from the database
-                // getName(48, (err, names) => {
-                //     if (err) {
-                //         console.error(err);
-                //     } else {
-                //         // Normalize names array
-                //         const normalizedNames = names.map(name => normalizeText(name));  // array
+                // Fetch the names from the database
+                const names = await getName();
+                console.log("names", names)
 
                 // Check if any of the split words match a name in the database
                 let matchedName;
-                for (const word of splitWords) {
-                    for (const name of nameArray) {
-                        if (name.includes(word)) {
-                            matchedName = word;
+                if (text) {
+                    for (const name of names) {
+                        if (text.includes(name)) {
+                            matchedName = name;
                             break;
                         }
-                    }
-                    if (matchedName) {
-                        break;
                     }
                 }
 
@@ -235,11 +235,7 @@ const processMessage = async ({ text, messageIndex, prevTranscription }) => {
                     responses.name = text;
                     transcription = 'क्या आप कालका विधान सभा क्षेत्र से बोल रहे हैं?';
                 }
-
                 updateResponse('name', text)
-                // Continue with the next steps in the flow
-                // }
-                // });
                 break;
 
             case 2:

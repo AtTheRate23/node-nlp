@@ -206,7 +206,7 @@ const getName = (req, res) => {
     if (!part_no) {
         return res.status(400).json({ message: 'Part No is required.' });
     }
-    Voting.get_name_data(part_no, (err, result) => {
+    Voting.get_name_data_part_no_wise(part_no, (err, result) => {
         if (err) {
             console.error(err);
             return res.status(500).json({ message: 'An error occurred while fetching the name data.' });
