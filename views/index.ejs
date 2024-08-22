@@ -20,10 +20,10 @@
 
         .mobile-frame {
             background-image: url(https://d1lm766r530csk.cloudfront.net/img/logo/logo1.webp);
-            width: 410px;
+            width: 360px;
             /* background: no-repeat; */
             /* iPhone 14 Pro Max width */
-            height: 900px;
+            height: 810px;
             /* iPhone 14 Pro Max height */
             border: 16px solid #000;
             border-radius: 36px;
@@ -240,20 +240,70 @@
             border-radius: 50%;
         }
 
-        .left-brand-image {
-            width: 12%;
-            height: 60px;
-            margin-bottom: 20px;
-            margin-top: -55rem;
-            margin-right: 30rem;
+        /* media query for screen  */
+        @media only screen and (max-width: 480px) {
+
+            .right-brand-image,
+            .left-brand-image {
+                display: none;
+            }
         }
 
-        .right-brand-image {
-            width: 12%;
-            height: 60px;
-            margin-bottom: 20px;
-            margin-top: -53rem;
-            margin-left: 30rem;
+        @media only screen and (min-width: 481px) and (max-width: 768px) {
+
+            .right-brand-image,
+            .left-brand-image {
+                width: 180px;
+                position: relative;
+                top: -390px;
+            }
+
+            .left-brand-image {
+                padding-right: 10px;
+            }
+
+            .right-brand-image {
+                padding-left: 10px;
+                height: 60px;
+            }
+        }
+
+        @media only screen and (min-width: 769px) and (max-width: 1024px) {
+
+            .right-brand-image,
+            .left-brand-image {
+                width: 180px;
+                position: relative;
+                top: -390px;
+            }
+
+            .left-brand-image {
+                padding-right: 90px;
+            }
+
+            .right-brand-image {
+                padding-left: 90px;
+                height: 60px;
+            }
+        }
+
+        @media only screen and (min-width: 1025px) {
+
+            .right-brand-image,
+            .left-brand-image {
+                width: 200px;
+                position: relative;
+                top: -390px;
+            }
+
+            .left-brand-image {
+                padding-right: 200px;
+            }
+
+            .right-brand-image {
+                padding-left: 200px;
+                height: 60px;
+            }
         }
     </style>
 </head>
@@ -296,7 +346,7 @@
     <script>
         var subscriptionKey = "5b0e8f632ebf41edb22f3e34d6de23ab";
         var serviceRegion = "centralindia";
-        var languageTargetOptions = "hi-IN"; 
+        var languageTargetOptions = "hi-IN";
         var languageSourceOptions = "hi-IN"; // Default source language (e.g., Hindi)
 
         var SpeechSDK;
