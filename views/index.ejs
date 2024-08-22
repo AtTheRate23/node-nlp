@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voice Chat Bot</title>
-    <link rel="icon" href="/images/chat.png" type="image/png">
+    <link rel="icon" href="assets/chat.png" type="image/png">
     <style>
         body {
             background: linear-gradient(to bottom, #ffae70, #80b7ff);
@@ -19,12 +19,8 @@
         }
 
         .mobile-frame {
-            background-image: url(https://d1lm766r530csk.cloudfront.net/img/logo/logo1.webp);
             width: 360px;
-            /* background: no-repeat; */
-            /* iPhone 14 Pro Max width */
             height: 810px;
-            /* iPhone 14 Pro Max height */
             border: 16px solid #000;
             border-radius: 36px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
@@ -33,6 +29,8 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            background-image: url("https://res.cloudinary.com/dqzrourxg/image/upload/v1724330793/k9b7a1j14qi3sd1qio1e.png");
+            background-size: 140px 30px;
         }
 
         .dynamic-island {
@@ -359,8 +357,8 @@
         let talkToGeminiSwitch = false
         let prevTranscription = ''
 
-        const apiEndpoint = 'https://node-nlp.onrender.com'
-        // const apiEndpoint = 'http://localhost:5000'
+        // const apiEndpoint = 'https://node-nlp.onrender.com'
+        const apiEndpoint = 'http://localhost:5000'
 
         document.getElementById('switch-input').addEventListener('change', function () {
             // Perform some action when the switch is toggled
