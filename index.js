@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const Routes = require('./routes/index.js');
 const ScrapRoutes = require('./routes/scrap.js')
+const BotRoutes = require('./routes/bot.js')
 const path = require('path')
 const cors = require('cors')
 const bodyParser = require('body-parser');
@@ -26,6 +27,10 @@ app.get('/', (req, res) => {
     res.render('index', { transcription: null, audioUrl: null });
 });
 
+app.get('/chat-bot', (req, res) => {
+    res.render('chatbot');
+})
+
 
 // app.get('/', (req, res) => {
 //     res.status(200).json({
@@ -36,6 +41,7 @@ app.get('/', (req, res) => {
 // Routes
 app.use('/api', Routes);
 app.use('/scrap', ScrapRoutes);
+app.use('/bot', BotRoutes)
 
 // app listen
 
