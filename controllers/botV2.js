@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer');
+const cheerio = require('cheerio');
 const axios = require('axios');
 const cache = require('memory-cache');
 const xml2js = require('xml2js');
@@ -22,13 +23,14 @@ const fetchSitemapUrls = async (sitemapUrl) => {
         // Check if it's a sitemap index file
         if (parsedXml.sitemapindex && parsedXml.sitemapindex.sitemap) {
             const sitemaps = parsedXml.sitemapindex.sitemap;
-            for (const sitemap of sitemaps) {
+            const promises = sitemaps.map(sitemap => {
                 const loc = sitemap.loc[0];
                 console.log('sitemapUrl', loc);
                 // Recursively fetch URLs from each sitemap
-                const nestedUrls = await fetchSitemapUrls(loc);
-                urls = urls.concat(nestedUrls);
-            }
+                return fetchSitemapUrls(loc);
+            });
+            const results = await Promise.all(promises);
+            urls = urls.concat(...results);
         }
 
         // Check if it's a standard urlset
@@ -66,59 +68,43 @@ const fetchFromRobotsTxt = async (baseUrl) => {
 };
 
 // Function to scrape a site without sitemap (fallback)
-const crawlSite = async (url, maxDepth = 2, currentDepth = 0, visited = new Set()) => {
+const crawlSite = async (url, maxDepth = 5, currentDepth = 0, visited = new Set()) => {
     if (currentDepth > maxDepth || visited.has(url)) return [];
     visited.add(url);
 
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.goto(url);
-    const links = await page.$$eval('a', anchors => anchors.map(a => a.href));  // Extract links
-    const content = await page.content();
-    await browser.close();
+    try {
+        const response = await axios.get(url);
+        const $ = cheerio.load(response.data);
+        const links = $('a[href]').map((index, element) => $(element).attr('href')).get();
+        const content = response.data;
 
-    // Recursively crawl the links on the site (limit to internal links)
-    const internalLinks = links.filter(link => link.startsWith(url));
-    let allContent = [content];
-    for (const link of internalLinks) {
-        const moreContent = await crawlSite(link, maxDepth, currentDepth + 1, visited);
-        allContent.push(...moreContent);
+        // Recursively crawl the links on the site (limit to internal links)
+        const internalLinks = links.filter(link => link.startsWith(url));
+        let allContent = [content];
+        for (const link of internalLinks) {
+            const moreContent = await crawlSite(link, maxDepth, currentDepth + 1, visited);
+            allContent.push(...moreContent);
+        }
+
+        return allContent;
+    } catch (error) {
+        console.error('Error crawling site:', error);
+        return [];
     }
-
-    return allContent;
 };
 
 // Function to scrape data from a given URL
 const scrapeData = async (url) => {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.goto(url);
-    const content = await page.content();
-    await browser.close();
-    return content;
-};
-
-// Function to process the question using Google Generative AI
-const processQuestionWithGoogleAI = async (data, question) => {
     try {
-        const prompt = `
-            You are given a website's scraped data. Analyze the content and provide a concise and relevant answer to the user's question based on the data. Ensure the response includes specific technologies or details relevant to the question.
-
-            Here is the data:
-            "${data}"
-            
-            The user's question is: "${question}"
-
-            Provide a clear and customized response, focusing on the relevant details.
-        `;
-        const result = await model.generateContent(prompt);
-        const response = result.response;
-        const transcription = response.text();
-
-        return transcription;
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        await page.goto(url);
+        const content = await page.content();
+        await browser.close();
+        return content;
     } catch (error) {
-        console.error('Error with Google Generative AI:', error);
-        return 'Sorry, I could not generate a response at this time.';
+        console.error(`Error scraping ${url}:`, error);
+        return '';
     }
 };
 
@@ -143,10 +129,11 @@ exports.ScrapeAndSaveController = async (req, res) => {
     if (sitemapUrls.length === 0) {
         console.warn('No sitemap found. Falling back to crawling the site.');
         const crawledContent = await crawlSite(url);
+        console.log(crawledContent)
         scrapedData = crawledContent.join(' ');
     } else {
         // Scrape data from all URLs in the sitemap
-        for (const siteUrl of sitemapUrls) {
+        const promises = sitemapUrls.map(async (siteUrl) => {
             const cacheKey = `scraped-data-${siteUrl}`;
             let cachedData = cache.get(cacheKey);
 
@@ -154,15 +141,43 @@ exports.ScrapeAndSaveController = async (req, res) => {
                 cachedData = await scrapeData(siteUrl);
                 cache.put(cacheKey, cachedData, 3600000); // Cache for 1 hour
             }
-            scrapedData += cachedData;
-        }
+            return cachedData;
+        });
+        const results = await Promise.all(promises);
+        scrapedData = results.join(' ');
     }
+
+    console.log("scrapeData", scrapeData)
 
     // Save the scraped data (for now, use memory-cache for simplicity)
     const cacheKey = `scraped-data-${url}`;
     cache.put(cacheKey, scrapedData, 3600000); // Cache for 1 hour
 
     res.json({ response: 'Data scraped and saved successfully!' });
+};
+
+// Function to process the question using Google Generative AI
+const processQuestionWithGoogleAI = async (data, question) => {
+    try {
+        const prompt = `
+            You are given a website's scraped data. Analyze the content and provide a concise and relevant answer to the user's question based on the data. Ensure the response includes specific technologies or details relevant to the question.
+
+            Here is the data:
+            "${data}"
+            
+            The user's question is: "${question}"
+
+            Provide a clear and customized response, focusing on the relevant details.
+        `;
+        const result = await model.generateContent(prompt);
+        const response = result.response;
+        const transcription = response.text();
+
+        return transcription;
+    } catch (error) {
+        console.error('Error with Google Generative AI:', error);
+        return 'Sorry, I could not generate a response at this time.';
+    }
 };
 
 // Question API: This API will use saved data to answer questions

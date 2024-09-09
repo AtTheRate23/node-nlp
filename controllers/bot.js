@@ -66,7 +66,7 @@ const processQuestionWithGoogleAI = async (data, question) => {
         // return completion.choices[0].message.content.trim();
         return transcription;
     } catch (error) {
-        console.error('Error with OpenAI API:', error);
+        console.error('Error with AI Model:', error);
         return 'Sorry, I could not generate a response at this time.';
     }
 };
