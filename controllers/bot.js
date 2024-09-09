@@ -1,16 +1,12 @@
 const puppeteer = require('puppeteer');
-const axios = require('axios');
-const { json } = require('body-parser');
 const cache = require('memory-cache');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY)
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 
-exports.WebBotController = async (req, res) => {
-    const { text, url } = req.body;
-
-    console.log(text, url);
+exports.ScrapeAndSaveControllerV1 = async (req, res) => {
+    const { url } = req.body;
 
     // Scrape data from the website URL
     const scrapeData = async (url) => {
@@ -30,12 +26,25 @@ exports.WebBotController = async (req, res) => {
         cache.put(cacheKey, cachedData, 3600000); // cache for 1 hour
     }
 
-    // Process the user's question
-    const question = text;
-    const response = await processQuestionWithGoogleAI(cachedData, question);
+    res.json({ response: "I'm ready to help you, aske me anything related to given url." });
+};
 
+exports.AnswerQuestionControllerV1 = async (req, res) => {
+    const { message, url } = req.body;
+
+    // Retrieve the saved scraped data from cache
+    const cacheKey = `scraped-data-${url}`;
+    const scrapedData = cache.get(cacheKey);
+
+    if (!scrapedData) {
+        return res.status(404).json({ message: 'No data found for the given URL. Please scrape the site first.' });
+    }
+
+    // Process the user's question with Google Generative AI
+    const response = await processQuestionWithGoogleAI(scrapedData, message);
     res.json({ response });
 };
+
 
 // Function to process the question using Google Generative AI
 const processQuestionWithGoogleAI = async (data, question) => {
@@ -53,7 +62,6 @@ const processQuestionWithGoogleAI = async (data, question) => {
         const result = await model.generateContent(prompt)
         const response = result.response;
         const transcription = response.text();
-        console.log(transcription)
 
         // return completion.choices[0].message.content.trim();
         return transcription;
