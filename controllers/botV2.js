@@ -25,7 +25,6 @@ const fetchSitemapUrls = async (sitemapUrl) => {
             const sitemaps = parsedXml.sitemapindex.sitemap;
             const promises = sitemaps.map(sitemap => {
                 const loc = sitemap.loc[0];
-                console.log('sitemapUrl', loc);
                 // Recursively fetch URLs from each sitemap
                 return fetchSitemapUrls(loc);
             });
@@ -48,7 +47,6 @@ const fetchSitemapUrls = async (sitemapUrl) => {
 
 // Function to check for robots.txt and extract sitemap locations
 const fetchFromRobotsTxt = async (baseUrl) => {
-    console.log("baseUrl", baseUrl)
     try {
         const response = await axios.get(`${baseUrl}/robots.txt`);
         const robotsTxt = response.data;
@@ -129,7 +127,6 @@ exports.ScrapeAndSaveController = async (req, res) => {
     if (sitemapUrls.length === 0) {
         console.warn('No sitemap found. Falling back to crawling the site.');
         const crawledContent = await crawlSite(url);
-        console.log(crawledContent)
         scrapedData = crawledContent.join(' ');
     } else {
         // Scrape data from all URLs in the sitemap
@@ -146,8 +143,6 @@ exports.ScrapeAndSaveController = async (req, res) => {
         const results = await Promise.all(promises);
         scrapedData = results.join(' ');
     }
-
-    console.log("scrapeData", scrapeData)
 
     // Save the scraped data (for now, use memory-cache for simplicity)
     const cacheKey = `scraped-data-${url}`;
