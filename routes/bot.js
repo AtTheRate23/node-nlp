@@ -1,9 +1,9 @@
 const express = require('express');
-const { OpenAiController } = require('../controllers/bot');
+const { WebBotController } = require('../controllers/bot');
 
 const app = express.Router();
 
 // Define a route for GET requests to /api/hello
-app.post('/web', OpenAiController)
+app.post('/web', WebBotController)
 
 module.exports = app;
