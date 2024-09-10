@@ -150,7 +150,7 @@ exports.ScrapeAndSaveController = async (req, res) => {
     const cacheKey = `scraped-data-${url}`;
     cache.put(cacheKey, scrapedData, 3600000); // Cache for 1 hour
 
-    res.json({ response: "I'm ready to help you, aske me anything related to given url." });
+    res.json({ response: "Hi, I'm your virtual assistant! Ready to dive into website and uncover the information you need. How can I help you today?" });
 };
 
 // Function to process the question using Google Generative AI
