@@ -5,9 +5,14 @@ const xml2js = require('xml2js');
 const ChatBot = require('../models/WebBot.js');
 const { Cluster } = require('puppeteer-cluster');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { OpenAI } = require('openai');
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+});
 
 // Puppeteer cluster for concurrent scraping
 const cluster = Cluster.launch({
@@ -151,6 +156,39 @@ const processQuestionWithGoogleAI = async (data, question) => {
     }
 };
 
+const processQuestionWithOpenAI = async (data, question) => {
+    try {
+        const prompt = `
+        You are given a website's scraped data. Analyze the content and provide a concise and relevant answer to the user's question based on the data. Ensure the response includes specific technologies or details relevant to the question.
+  
+        Here is the data:
+        "${data}"
+  
+        The user's question is: "${question}"
+  
+        Provide a clear and customized response, focusing on the relevant details.
+      `;
+        const response = await openai.chat.completions.create({
+            model: 'gpt-4o-mini',
+            prompt: prompt,
+            temperature: 0.5,
+            max_tokens: 2048,
+        });
+        let responseText = response.choices[0].text;
+
+        // Remove any sentences that contain scraped data
+        const sanitizedText = responseText
+            .split('. ')
+            .filter(sentence => !data.includes(sentence.trim()))
+            .join('. ');
+
+        return sanitizedText;
+    } catch (error) {
+        console.error('Error with OpenAI:', error);
+        return 'Sorry, I could not generate a response at this time.';
+    }
+};
+
 // Question API: Use saved data to answer questions
 exports.AnswerQuestionControllerV3 = async (req, res) => {
     const { message, url, id } = req.body;
@@ -161,8 +199,8 @@ exports.AnswerQuestionControllerV3 = async (req, res) => {
     if (!scrapedData) {
         return res.status(404).json({ message: 'something went wrong. please try again' });
     }
-
-    const response = await processQuestionWithGoogleAI(scrapedData, message);
+    // const response = await processQuestionWithGoogleAI(scrapedData, message);
+    const response = await processQuestionWithOpenAI(scrapedData, message);
 
     if (id) {
         const payload = { chat_id: id, user_query: message, bot_resp: response };
