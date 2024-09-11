@@ -3,6 +3,7 @@ const cheerio = require('cheerio');
 const axios = require('axios');
 const cache = require('memory-cache');
 const xml2js = require('xml2js');
+const ChatBot = require('../models/WebBot.js')
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { processQuestionWithoutAI } = require('./customBot');
@@ -150,7 +151,7 @@ exports.ScrapeAndSaveController = async (req, res) => {
     const cacheKey = `scraped-data-${url}`;
     cache.put(cacheKey, scrapedData, 3600000); // Cache for 1 hour
 
-    res.json({ response: "Hi, I'm your virtual assistant! Ready to dive into website and uncover the information you need. How can I help you today?" });
+    res.json({ response: "Hi, I'm your virtual assistant! What's your name? I'm ready to help you to uncover the information you need." });
 };
 
 // Function to process the question using Google Generative AI
@@ -179,19 +180,49 @@ const processQuestionWithGoogleAI = async (data, question) => {
 
 // Question API: This API will use saved data to answer questions
 exports.AnswerQuestionController = async (req, res) => {
-    const { message, url } = req.body;
+    const { message, url, id } = req.body;
 
     // Retrieve the saved scraped data from cache
     const cacheKey = `scraped-data-${url}`;
     const scrapedData = cache.get(cacheKey);
 
     if (!scrapedData) {
-        return res.status(404).json({ message: 'No data found for the given URL. Please scrape the site first.' });
+        return res.status(404).json({ message: 'No data found for the given URL. something went wrong.' });
     }
 
     // Process the user's question with Google Generative AI
     const response = await processQuestionWithGoogleAI(scrapedData, message);
-    res.json({ response });
+    // check wheather id is empty or not
+
+    if (id) {
+        const payload = {
+            chat_id: id,
+            user_query: message,
+            bot_resp: response
+        }
+        await ChatBot.InsertChats(payload, (err, result) => {
+            if (err) throw err;
+            const data = {
+                id,
+                user_query: message,
+                bot_resp: response,
+            }
+            res.status(200).json({ message: 'Chats updated successfully!', data, response });
+        })
+    } else {
+        const payload = {
+            first_message: message,
+        }
+        await ChatBot.createChat(payload, (err, result) => {
+            if (err) throw err;
+            const data = {
+                id: result.insertId,
+                user_query: message,
+                bot_resp: response,
+            }
+            res.status(200).json({ message: 'Chats created successfully!', data, response });
+        })
+    }
 };
 
 
