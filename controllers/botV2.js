@@ -6,7 +6,6 @@ const xml2js = require('xml2js');
 const ChatBot = require('../models/WebBot.js')
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const { processQuestionWithoutAI } = require('./customBot');
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -187,7 +186,7 @@ exports.AnswerQuestionController = async (req, res) => {
     const scrapedData = cache.get(cacheKey);
 
     if (!scrapedData) {
-        return res.status(404).json({ message: 'No data found for the given URL. something went wrong.' });
+        return res.status(404).json({ message: 'something went wrong. please try again' });
     }
 
     // Process the user's question with Google Generative AI
